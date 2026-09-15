@@ -1,0 +1,31 @@
+import { test, expect, canvasNode, load } from './helpers'
+
+test('edits message details, clears text, uploads a file and keeps edits after close', async ({ page }) => {
+  await load(page)
+  await canvasNode(page, 'b0653a').click()
+  const drawer = page.getByRole('dialog')
+  await drawer.getByLabel('Title', { exact: true }).fill('A better welcome')
+  await drawer.getByLabel('Description', { exact: true }).fill('Greeting for every new chat')
+  await drawer.getByLabel('Message', { exact: true }).fill('Hello from Flowbiz')
+  await drawer.getByLabel('Upload attachments').setInputFiles({ name: 'brief.txt', mimeType: 'text/plain', buffer: Buffer.from('notes') })
+  await expect(drawer.getByText('brief.txt')).toBeVisible()
+  await drawer.getByRole('button', { name: 'Save changes' }).click()
+  await page.keyboard.press('Escape')
+  await canvasNode(page, 'b0653a').click()
+  await expect(drawer.getByLabel('Title', { exact: true })).toHaveValue('A better welcome')
+  await expect(drawer.getByText('brief.txt')).toBeVisible()
+  await drawer.getByRole('button', { name: 'Clear message' }).click()
+  await drawer.getByRole('button', { name: 'Save changes' }).click()
+  await expect(drawer.getByLabel('Message', { exact: true })).toHaveValue('')
+})
+
+test('confirmed deletion removes the node and all of its edges', async ({ page }) => {
+  await load(page)
+  await canvasNode(page, 'b0653a').click()
+  const edgesBefore = await page.locator('.vue-flow__edge').count()
+  await page.getByRole('button', { name: 'Delete node' }).click()
+  await page.getByRole('button', { name: 'Confirm delete' }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(canvasNode(page, 'b0653a')).toHaveCount(0)
+  await expect(page.locator('.vue-flow__edge')).toHaveCount(edgesBefore - 1)
+})

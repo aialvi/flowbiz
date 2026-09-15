@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
@@ -7,6 +7,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { useCanvasStore } from '@/stores/canvas'
 import { isEditableType } from '@/utils/validation'
 import { nodeMeta } from '@/utils/nodes'
+import { useGraphMutation } from '@/composables/useGraphMutation'
+import SendMessageEditor from './SendMessageEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,8 +16,15 @@ const store = useCanvasStore()
 const node = computed(() => store.nodeById(route.params.nodeId))
 const isOpen = computed(() => route.name === 'node' && !!node.value && isEditableType(node.value.type))
 const meta = computed(() => nodeMeta(node.value?.type))
+const confirmDelete = ref(false)
+const mutation = useGraphMutation()
 function close() { if (route.name === 'node') router.push('/') }
 function changeOpen(value) { if (!value) close() }
+async function removeNode() {
+  await mutation.mutateAsync({ action: 'delete', id: node.value.id })
+  confirmDelete.value = false
+  close()
+}
 </script>
 
 <template>
@@ -30,7 +39,18 @@ function changeOpen(value) { if (!value) close() }
         <SheetDescription v-if="node">{{ node.data.description }}</SheetDescription>
       </SheetHeader>
       <div v-if="node" class="drawer-body">
-        <p class="drawer-placeholder">Edit this {{ meta.label.toLowerCase() }} step.</p>
+        <SendMessageEditor v-if="node.type === 'sendMessage'" :node="node" />
+        <p v-else class="drawer-placeholder">Edit this {{ meta.label.toLowerCase() }} step.</p>
+        <div class="delete-zone">
+          <template v-if="!confirmDelete">
+            <div><strong>Delete node</strong><p>This removes the node and every connected edge.</p></div>
+            <Button data-testid="delete-node" variant="destructive" @click="confirmDelete = true">Delete node</Button>
+          </template>
+          <template v-else>
+            <div><strong>Delete this node?</strong><p>This action can be undone with the keyboard shortcut.</p></div>
+            <div class="confirm-actions"><Button variant="ghost" @click="confirmDelete = false">Cancel</Button><Button data-testid="confirm-delete" variant="destructive" @click="removeNode">Confirm delete</Button></div>
+          </template>
+        </div>
       </div>
     </SheetContent>
   </Sheet>
