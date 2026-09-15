@@ -21,12 +21,30 @@ it('shares icon/label mapping and truncates text predictably', () => {
 it('opens editable nodes with Enter or Space and keeps branch nodes out of the tab order', async () => {
   const open = vi.fn()
   const wrapper = mount(WorkflowNode, { props: { id: 'message', type: 'sendMessage', data: { title: 'Message', description: 'Description', onOpen: open } }, global: { stubs: { Handle: true } } })
-  expect(wrapper.attributes('tabindex')).toBe('0')
-  await wrapper.trigger('keydown', { key: 'Enter' })
-  await wrapper.trigger('keydown', { key: ' ' })
+  const card = wrapper.get('.workflow-node')
+  expect(card.attributes('tabindex')).toBe('0')
+  await card.trigger('keydown', { key: 'Enter' })
+  await card.trigger('keydown', { key: ' ' })
   expect(open).toHaveBeenCalledTimes(2)
   const branch = mount(WorkflowNode, { props: { id: 'success', type: 'success', data: { title: 'Success', description: 'Done', onOpen: open } }, global: { stubs: { Handle: true } } })
-  expect(branch.attributes('tabindex')).toBeUndefined()
-  await branch.trigger('keydown', { key: 'Enter' })
+  expect(branch.get('.workflow-node').attributes('tabindex')).toBeUndefined()
+  await branch.get('.workflow-node').trigger('keydown', { key: 'Enter' })
   expect(open).toHaveBeenCalledTimes(2)
+})
+it('shows an accessible add control on every node', async () => {
+  const add = vi.fn()
+  const wrapper = mount(WorkflowNode, {
+    props: { id: 'message', type: 'sendMessage', data: { title: 'Message', description: 'Description', onAdd: add } },
+    global: { stubs: { Handle: { template: '<div><slot /></div>' } } },
+  })
+  const button = wrapper.get('button[aria-label="Add node after Message"]')
+  await button.trigger('click')
+  expect(add).toHaveBeenCalledWith('message')
+})
+it('marks an end-of-series add control as terminal for ash styling', () => {
+  const wrapper = mount(WorkflowNode, {
+    props: { id: 'last', type: 'sendMessage', data: { title: 'Last step', description: 'Description', terminal: true } },
+    global: { stubs: { Handle: { template: '<div><slot /></div>' } } },
+  })
+  expect(wrapper.get('.node-add-control').classes()).toContain('is-terminal')
 })

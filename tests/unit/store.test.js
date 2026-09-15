@@ -20,6 +20,22 @@ it('adds unique editable nodes with independent defaults and sensible placement'
   expect(store.nodeById(next).position).not.toEqual(store.nodeById(id).position)
   expect(store.nodeById(next).data.timezone).toBe('UTC')
 })
+it('inserts a node directly after any node and moves its existing series down', () => {
+  const source = store.nodeById('b6a0c1')
+  const previousChild = store.nodeById('e879e4')
+  const previousChildY = previousChild.position.y
+  const id = store.addNode({ type: 'addComment', title: 'Follow up', description: 'Continue the conversation' }, source.id)
+  expect(store.nodeById(id)).toMatchObject({
+    type: 'addComment',
+    data: { parentId: source.id },
+    position: { x: source.position.x, y: source.position.y + 160 },
+  })
+  expect(store.edges).toContainEqual(expect.objectContaining({ source: source.id, target: id }))
+  expect(store.edges).toContainEqual(expect.objectContaining({ source: id, target: previousChild.id }))
+  expect(store.edges).not.toContainEqual(expect.objectContaining({ source: source.id, target: previousChild.id }))
+  expect(store.nodeById(previousChild.id).data.parentId).toBe(id)
+  expect(store.nodeById(previousChild.id).position.y).toBe(previousChildY + 160)
+})
 it('updates data without losing unrelated fields, and moves without changing other nodes', () => {
   const untouched = store.nodeById('d09c08')
   store.updateNode('b0653a', { message: '' })

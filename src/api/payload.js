@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/vue-query'
 import fallbackPayload from './payload-fallback.json'
+import { nodeVerticalStep } from '@/utils/nodes'
 
 export const PAYLOAD_URL = 'https://respond-io-fe-bucket.s3.ap-southeast-1.amazonaws.com/candidate-assessments/payload.json'
 export const queryOptions = {
@@ -89,13 +90,13 @@ export function normalizePayload(payload) {
   }
   let column = 0
   const visited = new Set()
-  function place(node, depth) {
+  function place(node, y) {
     if (visited.has(node.id)) return node.position.x
     visited.add(node.id)
     const descendants = (children.get(node.id) || []).filter(child => !visited.has(child.id))
-    const xs = descendants.map(child => place(child, depth + 1))
+    const xs = descendants.map(child => place(child, y + nodeVerticalStep(node.type)))
     const x = xs.length ? (xs[0] + xs.at(-1)) / 2 : column++ * 360
-    node.position = { x, y: depth * 160 }
+    node.position = { x, y }
     return x
   }
   nodes.filter(node => !byId.has(node.data.parentId)).forEach(node => place(node, 0))

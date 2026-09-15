@@ -17,6 +17,8 @@ it('boots the application shell with a routed workspace', async () => {
   expect(wrapper.find('main').exists()).toBe(true)
   expect(wrapper.get('a[href="#main-content"]').text()).toBe('Skip to workflow')
   expect(wrapper.get('main').attributes('id')).toBe('main-content')
+  expect(wrapper.find('.workspace-toolbar').exists()).toBe(false)
+  expect(wrapper.get('.app-header').get('[aria-label="History controls"]').exists()).toBe(true)
 })
 
 it('uses the real cn package to merge conflicting Tailwind utilities', () => {

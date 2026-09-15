@@ -4,7 +4,9 @@ test('tabs to a node, opens it with Enter and Space, and closes with Escape', as
   let focusedId = null
   for (let attempt = 0; attempt < 20 && !focusedId; attempt++) {
     await page.keyboard.press('Tab')
-    focusedId = await page.evaluate(() => document.activeElement?.closest('.vue-flow__node')?.dataset.id || null)
+    focusedId = await page.evaluate(() => document.activeElement?.matches('.workflow-node')
+      ? document.activeElement.closest('.vue-flow__node')?.dataset.id || null
+      : null)
   }
   expect(focusedId).toBeTruthy()
   const focusedNode = page.locator(`.vue-flow__node[data-id="${focusedId}"]`)

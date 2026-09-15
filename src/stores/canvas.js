@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { isEditableType, validateNode } from '@/utils/validation'
+import { nodeVerticalStep } from '@/utils/nodes'
 
 function copyGraph(nodes, edges) {
   return {
@@ -49,17 +50,50 @@ export const useCanvasStore = defineStore('canvas', {
       this.edges = snapshot.edges
       return true
     },
-    addNode(fields) {
+    addNode(fields, afterNodeId = null) {
       if (Object.keys(validateNode(fields)).length) throw new Error('Invalid node fields')
+      const source = afterNodeId == null ? null : this.nodeById(afterNodeId)
+      if (afterNodeId != null && !source) throw new Error('Source node not found')
       this.record()
       const id = crypto.randomUUID()
       const type = fields.type
-      const data = { title: fields.title.trim(), description: fields.description.trim() }
+      const data = { title: fields.title.trim(), description: fields.description.trim(), parentId: source?.id ?? '-1' }
       if (type === 'sendMessage') Object.assign(data, { message: '', attachments: [] })
       if (type === 'addComment') data.comment = ''
       if (type === 'businessHours') Object.assign(data, { timezone: 'UTC', times: ['mon', 'tue', 'wed', 'thu', 'fri'].map(day => ({ day, startTime: '09:00', endTime: '17:00' })) })
       const maxX = Math.max(0, ...this.nodes.map(node => node.position.x))
-      this.nodes = [...this.nodes, { id, type, data, position: { x: maxX + 360, y: 160 } }]
+      const position = source ? { x: source.position.x, y: source.position.y + nodeVerticalStep(source.type) } : { x: maxX + 360, y: 160 }
+      if (source) {
+        const outgoing = this.edges.filter(edge => edge.source === source.id)
+        const descendants = new Set()
+        const queue = outgoing.map(edge => edge.target)
+        while (queue.length) {
+          const descendantId = queue.shift()
+          if (descendants.has(descendantId)) continue
+          descendants.add(descendantId)
+          this.edges.filter(edge => edge.source === descendantId).forEach(edge => queue.push(edge.target))
+        }
+        const directChildren = new Set(outgoing.map(edge => edge.target))
+        this.nodes = [...this.nodes.map(node => ({
+          ...node,
+          data: directChildren.has(node.id) ? { ...node.data, parentId: id } : node.data,
+          position: descendants.has(node.id) ? { ...node.position, y: node.position.y + nodeVerticalStep(type) } : node.position,
+        })), { id, type, data, position }]
+        this.edges = [...this.edges.map(edge => edge.source === source.id ? {
+          ...edge,
+          id: `edge-${id}-${edge.target}`,
+          source: id,
+        } : edge), {
+          id: `edge-${source.id}-${id}`,
+          source: source.id,
+          target: id,
+          type: 'smoothstep',
+          selectable: false,
+          focusable: false,
+        }]
+      } else {
+        this.nodes = [...this.nodes, { id, type, data, position }]
+      }
       return id
     },
     updateNode(id, patch) {

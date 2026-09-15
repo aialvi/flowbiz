@@ -7,6 +7,7 @@ test('updates and removes an Add Comment note', async ({ page }) => {
   await drawer.getByLabel('Comment').fill('Follow up tomorrow')
   await drawer.getByRole('button', { name: 'Save changes' }).click()
   await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(/\/$/)
   await canvasNode(page, 'e879e4').click()
   await expect(drawer.getByLabel('Comment')).toHaveValue('Follow up tomorrow')
   await drawer.getByRole('button', { name: 'Remove comment' }).click()

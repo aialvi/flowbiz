@@ -9,6 +9,7 @@ const metadata = {
   failure: { label: 'Failure', icon: X, color: '#de7180' },
 }
 export function nodeMeta(type) { return metadata[type] || { label: 'Node', icon: Circle, color: '#8993a3' } }
+export function nodeVerticalStep(type) { return ['success', 'failure'].includes(type) ? 124 : 160 }
 export function truncate(value, limit = 62) {
   const text = String(value ?? '')
   return text.length > limit ? `${text.slice(0, Math.max(0, limit - 1))}…` : text

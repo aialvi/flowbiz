@@ -8,7 +8,7 @@ export function useGraphMutation() {
     scope: { id: 'graph-edit' },
     mutationFn: async (command) => {
       switch (command.action) {
-        case 'create': return store.addNode(command.fields)
+        case 'create': return store.addNode(command.fields, command.afterNodeId)
         case 'update': return store.updateNode(command.id, command.patch)
         case 'move': return store.moveNode(command.id, command.position)
         case 'delete': return store.deleteNode(command.id)

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, markRaw } from 'vue'
+import { computed, watch, markRaw, ref } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -12,9 +12,6 @@ import CreateNode from '@/components/CreateNode.vue'
 import NodeDrawer from '@/components/drawer/NodeDrawer.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isEditableType } from '@/utils/validation'
-import { useHistoryShortcuts } from '@/composables/useHistoryShortcuts'
-import { Undo2, Redo2 } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
@@ -25,6 +22,7 @@ const query = usePayload()
 const mutation = useGraphMutation()
 const route = useRoute()
 const router = useRouter()
+const createNode = ref()
 watch(query.data, data => { if (data) store.hydrate(normalizePayload(data)) }, { immediate: true })
 // Vue Flow owns transient drag/selection state, separately from Pinia's saved graph.
 const nodeTypes = Object.fromEntries(['trigger', 'sendMessage', 'addComment', 'businessHours', 'success', 'failure'].map(type => [type, markRaw(WorkflowNode)]))
@@ -33,9 +31,19 @@ function openNode(id, type) {
   if (!isEditableType(type)) return
   router.push(route.params.nodeId === id ? '/' : `/node/${id}`)
 }
+function addAfterNode(id) {
+  createNode.value?.openAfter(id)
+}
 const flowNodes = computed(() => store.nodes.map(node => {
-  if (!nodeCache.has(node)) nodeCache.set(node, { ...node, position: { ...node.position }, data: { ...node.data, onOpen: openNode }, label: node.data.title })
-  return nodeCache.get(node)
+  const terminal = !store.edges.some(edge => edge.source === node.id)
+  const cached = nodeCache.get(node)
+  if (!cached || cached.terminal !== terminal) {
+    nodeCache.set(node, {
+      terminal,
+      flowNode: { ...node, position: { ...node.position }, data: { ...node.data, onOpen: openNode, onAdd: addAfterNode, terminal }, label: node.data.title },
+    })
+  }
+  return nodeCache.get(node).flowNode
 }))
 const flowEdges = computed(() => store.edges.map(edge => ({ ...edge })))
 function onDragStop({ node }) {
@@ -44,19 +52,10 @@ function onDragStop({ node }) {
 function onNodeClick({ node }) {
   openNode(node.id, node.type)
 }
-function history(action) { mutation.mutate({ action }) }
-useHistoryShortcuts(history)
 </script>
 
 <template>
   <section class="workspace" aria-label="Workflow canvas">
-    <div class="workspace-toolbar">
-      <div><h1>Conversation workflow</h1><p>A warm welcome. Even when you’re away.</p></div>
-      <div class="toolbar-actions">
-        <div class="history-actions" aria-label="History controls"><Button variant="outline" size="icon-sm" aria-label="Undo" :disabled="!store.canUndo" @click="history('undo')"><Undo2 /></Button><Button variant="outline" size="icon-sm" aria-label="Redo" :disabled="!store.canRedo" @click="history('redo')"><Redo2 /></Button></div>
-        <div class="workflow-state"><span class="status-dot" /> Draft workflow</div><CreateNode />
-      </div>
-    </div>
     <div v-if="query.isPending.value" class="canvas-message" role="status" aria-live="polite">Loading your workflow…</div>
     <div v-else-if="query.isError.value && !store.hydrated" class="canvas-message" role="alert" aria-live="assertive">
       <h2>We couldn’t load your workflow</h2><p>{{ query.error.value.message }}</p>
@@ -73,5 +72,6 @@ useHistoryShortcuts(history)
       <span role="status" aria-live="polite">{{ mutation.isError.value ? mutation.error.value.message : mutation.isSuccess.value ? 'Changes saved for this session' : 'All changes stay in this session' }}</span>
     </footer>
     <NodeDrawer />
+    <CreateNode ref="createNode" />
   </section>
 </template>
