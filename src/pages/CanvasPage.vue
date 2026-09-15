@@ -8,6 +8,7 @@ import { useCanvasStore } from '@/stores/canvas'
 import { usePayload, normalizePayload } from '@/api/payload'
 import { useGraphMutation } from '@/composables/useGraphMutation'
 import WorkflowNode from '@/components/nodes/WorkflowNode.vue'
+import CreateNode from '@/components/CreateNode.vue'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
@@ -34,7 +35,7 @@ function onDragStop({ node }) {
   <section class="workspace" aria-label="Workflow canvas">
     <div class="workspace-toolbar">
       <div><h1>Conversation workflow</h1><p>A warm welcome. Even when you’re away.</p></div>
-      <div class="workflow-state"><span class="status-dot" /> Draft workflow</div>
+      <div class="toolbar-actions"><div class="workflow-state"><span class="status-dot" /> Draft workflow</div><CreateNode /></div>
     </div>
     <div v-if="query.isPending.value" class="canvas-message" role="status">Loading your workflow…</div>
     <div v-else-if="query.isError.value && !store.hydrated" class="canvas-message" role="alert">

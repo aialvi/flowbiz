@@ -4,4 +4,4 @@ enableAutoUnmount(afterEach)
 global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
 window.matchMedia = vi.fn().mockImplementation(() => ({ matches: false, addEventListener() {}, removeEventListener() {} }))
 Element.prototype.scrollIntoView = vi.fn()
-afterEach(() => { vi.restoreAllMocks(); document.body.innerHTML = '' })
+afterEach(() => { vi.restoreAllMocks() })

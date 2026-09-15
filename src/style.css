@@ -22,6 +22,7 @@ main { flex: 1; min-height: 0; position: relative; }
 .workspace-toolbar h1 { font-size: 19px; font-weight: 650; letter-spacing: -.4px; margin: 0; }
 .workspace-toolbar p { font-size: 13px; color: #7a8495; margin: 5px 0 0; }
 .workflow-state { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #667085; }
+.toolbar-actions { display: flex; align-items: center; gap: 20px; }
 .status-dot { height: 7px; width: 7px; background: #a6aebe; border-radius: 50%; }
 .canvas-footer { display: flex; align-items: center; justify-content: space-between; background: white; border-top: 1px solid #e4e7ed; padding: 12px 25px; font-size: 11px; color: #7a8495; }
 .canvas-message { flex: 1; display: grid; align-content: center; justify-items: center; gap: 15px; }
@@ -32,6 +33,14 @@ main { flex: 1; min-height: 0; position: relative; }
 .vue-flow__controls-button { border-bottom: 0; padding: 8px; }
 .vue-flow__minimap { border: 1px solid #e4e7ed; border-radius: 9px; overflow: hidden; box-shadow: none; }
 .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 7px; background: #6d5ce7; color: white; font-size: 13px; font-weight: 550; }
+.create-dialog { max-width: 480px; padding: 24px; }
+.create-dialog form { display: grid; gap: 24px; }
+.form-stack { display: grid; gap: 18px; }
+.field-group { display: grid; gap: 7px; }
+.field-label-row { display: flex; justify-content: space-between; align-items: center; }
+.field-label-row span { color: #9299a6; font-size: 11px; }
+.field-error { color: #c94858; font-size: 11px; margin: 0; }
+.select-input { height: 36px; width: 100%; border: 1px solid var(--input); border-radius: 8px; background: white; padding: 0 10px; font-size: 13px; }
 .workflow-node { width: 280px; padding: 17px 18px 15px; border: 1px solid #dfe3eb; border-radius: 11px; background: white; box-shadow: 0 3px 7px #24304406; transition: border-color .18s, box-shadow .18s; }
 .workflow-node:hover, .workflow-node.is-selected { border-color: #a697ee; box-shadow: 0 3px 12px #6352d712; }
 .node-heading { display: flex; align-items: center; gap: 11px; }

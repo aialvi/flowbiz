@@ -1,0 +1,15 @@
+import { test, expect, load } from './helpers'
+test('create validates empty fields and adds a new node to the canvas', async ({ page }) => {
+  await load(page)
+  await page.getByRole('button', { name: 'Create New Node' }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Create node', exact: true }).click()
+  await expect(dialog.getByText('Use at least 3 characters')).toBeVisible()
+  await dialog.getByLabel('Title', { exact: true }).fill('Follow up')
+  await dialog.getByLabel('Description', { exact: true }).fill('Send a helpful follow up')
+  await dialog.getByLabel('Type', { exact: true }).selectOption('addComment')
+  await dialog.getByRole('button', { name: 'Create node', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.locator('.vue-flow__node')).toHaveCount(8)
+  await expect(page.locator('.vue-flow__node').filter({ hasText: 'Follow up' })).toBeVisible()
+})
