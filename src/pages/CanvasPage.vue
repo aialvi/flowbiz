@@ -9,6 +9,9 @@ import { usePayload, normalizePayload } from '@/api/payload'
 import { useGraphMutation } from '@/composables/useGraphMutation'
 import WorkflowNode from '@/components/nodes/WorkflowNode.vue'
 import CreateNode from '@/components/CreateNode.vue'
+import NodeDrawer from '@/components/drawer/NodeDrawer.vue'
+import { useRoute, useRouter } from 'vue-router'
+import { isEditableType } from '@/utils/validation'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
@@ -17,6 +20,8 @@ import '@vue-flow/minimap/dist/style.css'
 const store = useCanvasStore()
 const query = usePayload()
 const mutation = useGraphMutation()
+const route = useRoute()
+const router = useRouter()
 watch(query.data, data => { if (data) store.hydrate(normalizePayload(data)) }, { immediate: true })
 // Vue Flow owns transient drag/selection state, separately from Pinia's saved graph.
 const nodeTypes = Object.fromEntries(['trigger', 'sendMessage', 'addComment', 'businessHours', 'success', 'failure'].map(type => [type, markRaw(WorkflowNode)]))
@@ -28,6 +33,10 @@ const flowNodes = computed(() => store.nodes.map(node => {
 const flowEdges = computed(() => store.edges.map(edge => ({ ...edge })))
 function onDragStop({ node }) {
   mutation.mutate({ action: 'move', id: node.id, position: { ...node.position } })
+}
+function onNodeClick({ node }) {
+  if (!isEditableType(node.type)) return
+  router.push(route.params.nodeId === node.id ? '/' : `/node/${node.id}`)
 }
 </script>
 
@@ -44,7 +53,7 @@ function onDragStop({ node }) {
     </div>
     <VueFlow v-else :nodes="flowNodes" :edges="flowEdges" :node-types="nodeTypes" :min-zoom="0.2" :max-zoom="2"
       :fit-view-on-init="true" :fit-view-params="{ padding: 0.25, maxZoom: 1 }" :nodes-connectable="false"
-      :delete-key-code="null" :edges-updatable="false" @node-drag-stop="onDragStop">
+      :delete-key-code="null" :edges-updatable="false" @node-drag-stop="onDragStop" @node-click="onNodeClick">
       <Background :gap="20" :size="1" pattern-color="#d8dde7" />
       <Controls :show-interactive="false" />
       <MiniMap :pannable="true" :zoomable="true" node-color="#c4bcf4" />
@@ -52,5 +61,6 @@ function onDragStop({ node }) {
     <footer class="canvas-footer"><span>{{ store.nodes.length }} nodes · {{ store.edges.length }} connections</span>
       <span role="status">{{ mutation.isError.value ? mutation.error.value.message : mutation.isSuccess.value ? 'Changes saved for this session' : 'All changes stay in this session' }}</span>
     </footer>
+    <NodeDrawer />
   </section>
 </template>

@@ -1,0 +1,22 @@
+import { test, expect, canvasNode, load } from './helpers'
+test('node click updates URL, back/forward replays the drawer, and Escape closes it', async ({ page }) => {
+  await load(page)
+  await canvasNode(page, 'b0653a').click()
+  await expect(page).toHaveURL(/\/node\/b0653a$/)
+  await expect(page.getByRole('dialog')).toContainText('Welcome Message')
+  await page.goBack()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+  await page.goForward()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(/\/$/)
+})
+test('a direct node URL opens the right drawer and branch nodes remain inert', async ({ page }) => {
+  await load(page, '/node/e879e4')
+  await expect(page.getByRole('dialog')).toContainText('Add Comment #1')
+  await page.keyboard.press('Escape')
+  await canvasNode(page, '161f52').click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+})
