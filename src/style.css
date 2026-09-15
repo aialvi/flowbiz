@@ -44,6 +44,7 @@ main { flex: 1; min-height: 0; position: relative; }
 .select-input { height: 36px; width: 100%; border: 1px solid var(--input); border-radius: 8px; background: white; padding: 0 10px; font-size: 13px; }
 .workflow-node { width: 280px; padding: 17px 18px 15px; border: 1px solid #dfe3eb; border-radius: 11px; background: white; box-shadow: 0 3px 7px #24304406; transition: border-color .18s, box-shadow .18s; }
 .workflow-node:hover, .workflow-node.is-selected { border-color: #a697ee; box-shadow: 0 3px 12px #6352d712; }
+.workflow-node:focus-visible { outline: 3px solid #8b7bf5; outline-offset: 4px; border-color: #6d5ce7; }
 .node-heading { display: flex; align-items: center; gap: 11px; }
 .node-icon { color: var(--node-color); background: color-mix(in srgb, var(--node-color) 11%, white); width: 35px; height: 35px; display: grid; place-items: center; border-radius: 9px; flex-shrink: 0; }
 .node-heading-text { min-width: 0; flex: 1; }

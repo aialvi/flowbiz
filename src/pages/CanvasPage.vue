@@ -29,8 +29,12 @@ watch(query.data, data => { if (data) store.hydrate(normalizePayload(data)) }, {
 // Vue Flow owns transient drag/selection state, separately from Pinia's saved graph.
 const nodeTypes = Object.fromEntries(['trigger', 'sendMessage', 'addComment', 'businessHours', 'success', 'failure'].map(type => [type, markRaw(WorkflowNode)]))
 const nodeCache = new WeakMap()
+function openNode(id, type) {
+  if (!isEditableType(type)) return
+  router.push(route.params.nodeId === id ? '/' : `/node/${id}`)
+}
 const flowNodes = computed(() => store.nodes.map(node => {
-  if (!nodeCache.has(node)) nodeCache.set(node, { ...node, position: { ...node.position }, data: { ...node.data }, label: node.data.title })
+  if (!nodeCache.has(node)) nodeCache.set(node, { ...node, position: { ...node.position }, data: { ...node.data, onOpen: openNode }, label: node.data.title })
   return nodeCache.get(node)
 }))
 const flowEdges = computed(() => store.edges.map(edge => ({ ...edge })))
@@ -38,8 +42,7 @@ function onDragStop({ node }) {
   mutation.mutate({ action: 'move', id: node.id, position: { ...node.position } })
 }
 function onNodeClick({ node }) {
-  if (!isEditableType(node.type)) return
-  router.push(route.params.nodeId === node.id ? '/' : `/node/${node.id}`)
+  openNode(node.id, node.type)
 }
 function history(action) { mutation.mutate({ action }) }
 useHistoryShortcuts(history)
@@ -61,7 +64,7 @@ useHistoryShortcuts(history)
     </div>
     <VueFlow v-else :nodes="flowNodes" :edges="flowEdges" :node-types="nodeTypes" :min-zoom="0.2" :max-zoom="2"
       :fit-view-on-init="true" :fit-view-params="{ padding: 0.25, maxZoom: 1 }" :nodes-connectable="false"
-      :delete-key-code="null" :edges-updatable="false" @node-drag-stop="onDragStop" @node-click="onNodeClick">
+      :nodes-focusable="false" :delete-key-code="null" :edges-updatable="false" @node-drag-stop="onDragStop" @node-click="onNodeClick">
       <Background :gap="20" :size="1" pattern-color="#d8dde7" />
       <Controls :show-interactive="false" />
       <MiniMap :pannable="true" :zoomable="true" node-color="#c4bcf4" />
