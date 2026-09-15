@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/vue-query'
+import fallbackPayload from './payload-fallback.json'
 
 export const PAYLOAD_URL = 'https://respond-io-fe-bucket.s3.ap-southeast-1.amazonaws.com/candidate-assessments/payload.json'
 export const queryOptions = {
@@ -23,7 +24,22 @@ export async function fetchPayload({ signal, fetcher = globalThis.fetch } = {}) 
 }
 
 export function usePayload() {
-  return useQuery({ queryKey: ['workflow-payload'], queryFn: ({ signal }) => fetchPayload({ signal }) })
+  return useQuery({ queryKey: ['workflow-payload'], queryFn: ({ signal }) => loadPayload({ signal }) })
+}
+
+export async function loadPayload({ timeoutMs = 3000, ...options } = {}) {
+  let timeout
+  try {
+    return await Promise.race([
+      fetchPayload(options),
+      new Promise((_, reject) => { timeout = setTimeout(() => reject(new TypeError('Payload request timed out')), timeoutMs) }),
+    ])
+  } catch (error) {
+    if (error instanceof TypeError || error?.name === 'AbortError') return fallbackPayload
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 const defaults = {

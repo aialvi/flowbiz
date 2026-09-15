@@ -1,7 +1,10 @@
 # Assessment payload
 
 Fetched and inspected the live S3 endpoint on 2026-09-15. The exact response is
-checked in as `tests/fixtures/payload.json` for deterministic tests.
+checked in as `tests/fixtures/payload.json` for deterministic tests and as
+`src/api/payload-fallback.json` for browsers where the bucket blocks cross-origin
+requests. The app always attempts the live URL first and only uses this exact
+inspected copy after a network or browser CORS failure.
 
 The response is an **array of seven records**, not a `{ nodes, edges }` object.
 Each record has `id: string | number`, `parentId: string | number`, `type: string`,

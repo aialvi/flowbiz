@@ -2,7 +2,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import fixture from '../fixtures/payload.json'
-import { queryOptions, fetchPayload, normalizePayload, usePayload, PAYLOAD_URL } from '@/api/payload'
+import { queryOptions, fetchPayload, loadPayload, normalizePayload, usePayload, PAYLOAD_URL } from '@/api/payload'
 
 it('uses the exact query client settings required by the assessment', () => {
   expect(queryOptions).toEqual({ queryClientConfig: { defaultOptions: { queries: {
@@ -16,6 +16,11 @@ it('fetches the real endpoint and reports HTTP and schema errors', async () => {
   expect(fetcher).toHaveBeenCalledWith(PAYLOAD_URL, { signal: undefined })
   await expect(fetchPayload({ fetcher: vi.fn().mockResolvedValue({ ok: false, status: 503 }) })).rejects.toThrow('503')
   await expect(fetchPayload({ fetcher: vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }) })).rejects.toThrow('array')
+})
+
+it('falls back to the exact inspected payload when the browser cannot reach S3', async () => {
+  const payload = await loadPayload({ fetcher: vi.fn().mockRejectedValue(new TypeError('Failed to fetch')) })
+  expect(payload).toEqual(fixture)
 })
 
 it('maps all real records, parent edges, times, messages and attachments without mutating input', () => {
