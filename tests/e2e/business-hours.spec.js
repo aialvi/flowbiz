@@ -1,0 +1,18 @@
+import { test, expect, canvasNode, load } from './helpers'
+test('updates a Business Hours range and timezone while branch nodes stay read-only', async ({ page }) => {
+  await load(page)
+  await canvasNode(page, 'd09c08').click()
+  const drawer = page.getByRole('dialog')
+  await expect(drawer.locator('[data-testid="day-row"]')).toHaveCount(7)
+  await drawer.getByLabel('Monday start time').fill('10:15')
+  await drawer.getByLabel('Timezone').selectOption('Asia/Dhaka')
+  await drawer.getByRole('button', { name: 'Save changes' }).click()
+  await page.keyboard.press('Escape')
+  await canvasNode(page, 'd09c08').click()
+  await expect(drawer.getByLabel('Monday start time')).toHaveValue('10:15')
+  await expect(drawer.getByLabel('Timezone')).toHaveValue('Asia/Dhaka')
+  await page.keyboard.press('Escape')
+  await canvasNode(page, '28c4b9').click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+})

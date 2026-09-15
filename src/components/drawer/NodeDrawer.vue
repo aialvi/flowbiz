@@ -10,6 +10,7 @@ import { nodeMeta } from '@/utils/nodes'
 import { useGraphMutation } from '@/composables/useGraphMutation'
 import SendMessageEditor from './SendMessageEditor.vue'
 import CommentEditor from './CommentEditor.vue'
+import BusinessHoursEditor from './BusinessHoursEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -42,6 +43,7 @@ async function removeNode() {
       <div v-if="node" class="drawer-body">
         <SendMessageEditor v-if="node.type === 'sendMessage'" :node="node" />
         <CommentEditor v-else-if="node.type === 'addComment'" :node="node" />
+        <BusinessHoursEditor v-else-if="node.type === 'businessHours'" :node="node" />
         <p v-else class="drawer-placeholder">Edit this {{ meta.label.toLowerCase() }} step.</p>
         <div class="delete-zone">
           <template v-if="!confirmDelete">
