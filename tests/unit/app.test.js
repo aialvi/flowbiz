@@ -4,11 +4,15 @@ import App from '@/App.vue'
 import { createAppRouter } from '@/router'
 import { createMemoryHistory } from 'vue-router'
 import { cn } from '@/lib/utils'
+import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query'
+import fixture from '../fixtures/payload.json'
 
 it('boots the application shell with a routed workspace', async () => {
   const router = createAppRouter(createMemoryHistory())
   await router.push('/')
-  const wrapper = mount(App, { global: { plugins: [createPinia(), router] } })
+  const client = new QueryClient()
+  client.setQueryData(['workflow-payload'], fixture)
+  const wrapper = mount(App, { global: { plugins: [createPinia(), router, [VueQueryPlugin, { queryClient: client }]], stubs: { VueFlow: true } } })
   expect(wrapper.text()).toContain('Flowbiz')
   expect(wrapper.find('main').exists()).toBe(true)
 })
