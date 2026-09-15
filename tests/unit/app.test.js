@@ -15,6 +15,8 @@ it('boots the application shell with a routed workspace', async () => {
   const wrapper = mount(App, { global: { plugins: [createPinia(), router, [VueQueryPlugin, { queryClient: client }]], stubs: { VueFlow: true } } })
   expect(wrapper.text()).toContain('Flowbiz')
   expect(wrapper.find('main').exists()).toBe(true)
+  expect(wrapper.get('a[href="#main-content"]').text()).toBe('Skip to workflow')
+  expect(wrapper.get('main').attributes('id')).toBe('main-content')
 })
 
 it('uses the real cn package to merge conflicting Tailwind utilities', () => {

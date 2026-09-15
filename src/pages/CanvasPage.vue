@@ -57,8 +57,8 @@ useHistoryShortcuts(history)
         <div class="workflow-state"><span class="status-dot" /> Draft workflow</div><CreateNode />
       </div>
     </div>
-    <div v-if="query.isPending.value" class="canvas-message" role="status">Loading your workflow…</div>
-    <div v-else-if="query.isError.value && !store.hydrated" class="canvas-message" role="alert">
+    <div v-if="query.isPending.value" class="canvas-message" role="status" aria-live="polite">Loading your workflow…</div>
+    <div v-else-if="query.isError.value && !store.hydrated" class="canvas-message" role="alert" aria-live="assertive">
       <h2>We couldn’t load your workflow</h2><p>{{ query.error.value.message }}</p>
       <button class="primary-button" @click="query.refetch()">Try again</button>
     </div>
@@ -70,7 +70,7 @@ useHistoryShortcuts(history)
       <MiniMap :pannable="true" :zoomable="true" node-color="#c4bcf4" />
     </VueFlow>
     <footer class="canvas-footer"><span>{{ store.nodes.length }} nodes · {{ store.edges.length }} connections</span>
-      <span role="status">{{ mutation.isError.value ? mutation.error.value.message : mutation.isSuccess.value ? 'Changes saved for this session' : 'All changes stay in this session' }}</span>
+      <span role="status" aria-live="polite">{{ mutation.isError.value ? mutation.error.value.message : mutation.isSuccess.value ? 'Changes saved for this session' : 'All changes stay in this session' }}</span>
     </footer>
     <NodeDrawer />
   </section>
