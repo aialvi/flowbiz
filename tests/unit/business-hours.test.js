@@ -1,6 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import NodeDrawer from '@/components/drawer/NodeDrawer.vue'
 import { Select } from '@/components/ui/select'
+import { TimePicker } from '@/components/ui/time-picker'
 import { formatTime, formatTimeRange, formatTimezoneOffset, timezoneOptions, weekSchedule } from '@/utils/time'
 import { render } from '../helpers'
 
@@ -27,9 +28,7 @@ it('provides 24 curated whole-hour timezones without duplicate offsets', () => {
 it('renders all weekdays with themed time controls and saves range and timezone changes', async () => {
   const { wrapper, store } = await render(NodeDrawer, { route: '/node/d09c08' })
   expect(document.querySelectorAll('[data-testid="day-row"]')).toHaveLength(7)
-  const start = document.querySelector('[aria-label="Monday start time"]')
-  start.value = '10:15'
-  start.dispatchEvent(new Event('input', { bubbles: true }))
+  wrapper.findAllComponents(TimePicker)[0].vm.$emit('update:modelValue', '10:15')
   wrapper.findComponent(Select).vm.$emit('update:modelValue', 'Asia/Dhaka')
   await flushPromises()
   document.querySelector('[data-testid="save-node"]').click()

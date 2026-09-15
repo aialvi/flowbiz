@@ -31,7 +31,7 @@ it('opens editable nodes with Enter or Space and keeps branch nodes out of the t
   await branch.get('.workflow-node').trigger('keydown', { key: 'Enter' })
   expect(open).toHaveBeenCalledTimes(2)
 })
-it('shows an accessible add control on every node', async () => {
+it('shows an accessible add control on actionable nodes', async () => {
   const add = vi.fn()
   const wrapper = mount(WorkflowNode, {
     props: { id: 'message', type: 'sendMessage', data: { title: 'Message', description: 'Description', onAdd: add } },
@@ -40,6 +40,11 @@ it('shows an accessible add control on every node', async () => {
   const button = wrapper.get('button[aria-label="Add node after Message"]')
   await button.trigger('click')
   expect(add).toHaveBeenCalledWith('message')
+  const branch = mount(WorkflowNode, {
+    props: { id: 'success', type: 'success', data: { title: 'Success', description: 'Done', onAdd: add } },
+    global: { stubs: { Handle: { template: '<div><slot /></div>' } } },
+  })
+  expect(branch.find('.node-add-control').exists()).toBe(false)
 })
 it('marks an end-of-series add control as terminal for ash styling', () => {
   const wrapper = mount(WorkflowNode, {

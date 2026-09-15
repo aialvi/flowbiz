@@ -12,7 +12,7 @@ const props = defineProps({ node: { type: Object, required: true } })
 const fields = reactive({
   title: props.node.data.title,
   description: props.node.data.description,
-  message: props.node.data.message || '',
+  messages: (props.node.data.messages?.length ? props.node.data.messages : [{ id: `${props.node.id}-text-0`, text: props.node.data.message || '' }]).map(item => ({ ...item })),
 })
 const errors = ref({})
 const mutation = useGraphMutation()
@@ -20,8 +20,15 @@ const mutation = useGraphMutation()
 async function save() {
   errors.value = validateNode({ ...fields, type: props.node.type })
   if (Object.keys(errors.value).length) return
-  await mutation.mutateAsync({ action: 'update', id: props.node.id, patch: { ...fields } })
+  await mutation.mutateAsync({ action: 'update', id: props.node.id, patch: {
+    title: fields.title,
+    description: fields.description,
+    messages: fields.messages.map(item => ({ ...item })),
+    message: fields.messages.map(item => item.text).join('\n'),
+  } })
 }
+function addText() { fields.messages.push({ id: crypto.randomUUID(), text: '' }) }
+function removeText(id) { fields.messages = fields.messages.filter(item => item.id !== id) }
 async function upload(event) {
   const files = Array.from(event.target.files || [])
   if (!files.length) return
@@ -49,10 +56,16 @@ async function removeAttachment(id) {
       <Textarea id="node-description" v-model="fields.description" name="node-description" :maxlength="DESCRIPTION_LIMIT + 1" />
       <p v-if="errors.description" class="field-error">{{ errors.description }}</p>
     </div>
-    <div class="field-group">
-      <div class="field-label-row"><Label for="node-message">Message</Label><Button data-testid="clear-message" type="button" variant="ghost" size="sm" @click="fields.message = ''">Clear message</Button></div>
-      <Textarea id="node-message" v-model="fields.message" name="message" rows="5" placeholder="Write a message…" />
-    </div>
+    <section class="field-group" aria-labelledby="message-texts-label">
+      <div class="field-label-row"><Label id="message-texts-label">Message texts</Label><Button type="button" variant="ghost" size="sm" @click="addText">Add text</Button></div>
+      <div v-if="fields.messages.length" class="message-text-list">
+        <div v-for="(message, index) in fields.messages" :key="message.id" class="message-text-item">
+          <Textarea v-model="message.text" name="message-text" :aria-label="`Message text ${index + 1}`" rows="4" placeholder="Write a message…" />
+          <Button type="button" variant="ghost" size="icon-sm" :aria-label="`Remove message text ${index + 1}`" @click="removeText(message.id)"><Trash2 /></Button>
+        </div>
+      </div>
+      <p v-else class="empty-field-copy">No message text. Add one when needed.</p>
+    </section>
     <section class="field-group" aria-labelledby="attachments-label">
       <div class="field-label-row"><Label id="attachments-label">Attachments</Label><span>{{ node.data.attachments.length }} files</span></div>
       <div class="attachment-grid">

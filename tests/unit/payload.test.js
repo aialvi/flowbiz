@@ -30,7 +30,7 @@ it('maps all real records, parent edges, times, messages and attachments without
   expect(graph.edges).toHaveLength(6)
   expect(graph.nodes.find(n => n.id === '1')).toMatchObject({ type: 'trigger', data: { title: 'Conversation Opened' } })
   expect(graph.nodes.find(n => n.id === 'd09c08')).toMatchObject({ type: 'businessHours', data: { timezone: 'UTC', times: fixture[2].data.times } })
-  expect(graph.nodes.find(n => n.id === 'b0653a').data).toMatchObject({ title: 'Welcome Message', message: 'Hello there\n\nwelcome to the chat!', attachments: [{ url: fixture[5].data.payload[1].attachment }] })
+  expect(graph.nodes.find(n => n.id === 'b0653a').data).toMatchObject({ title: 'Welcome Message', message: 'Hello there\n\nwelcome to the chat!', messages: [{ text: 'Hello there\n\nwelcome to the chat!' }], attachments: [{ url: fixture[5].data.payload[1].attachment }] })
   expect(graph.nodes.find(n => n.id === 'e879e4').data.comment).toBe('User message during off hours')
   expect(graph.nodes.find(n => n.id === '161f52').type).toBe('success')
   const failure = graph.nodes.find(n => n.id === '28c4b9')
@@ -44,10 +44,21 @@ it('maps all real records, parent edges, times, messages and attachments without
 })
 
 it('handles disconnected nodes, missing optional data, and rejects duplicate IDs or broken required records', () => {
-  expect(normalizePayload([{ id: 'a', type: 'sendMessage' }]).nodes[0].data).toMatchObject({ message: '', attachments: [] })
+  expect(normalizePayload([{ id: 'a', type: 'sendMessage' }]).nodes[0].data).toMatchObject({ message: '', messages: [], attachments: [] })
   expect(() => normalizePayload([{ id: 'a', type: 'trigger' }, { id: 'a', type: 'trigger' }])).toThrow('Duplicate')
   expect(() => normalizePayload([{ type: 'trigger' }])).toThrow('id')
   expect(() => normalizePayload([{ id: 'a', type: 'unknown' }])).toThrow('type')
+})
+
+it('keeps Send Message text payload records independently editable', () => {
+  const graph = normalizePayload([{ id: 'message', type: 'sendMessage', data: { payload: [
+    { type: 'text', text: 'First text' },
+    { type: 'text', text: 'Second text' },
+  ] } }])
+  expect(graph.nodes[0].data.messages).toEqual([
+    { id: 'message-text-0', text: 'First text' },
+    { id: 'message-text-1', text: 'Second text' },
+  ])
 })
 
 it('the query hook caches the remote payload and never refetches on remount', async () => {

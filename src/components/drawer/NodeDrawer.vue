@@ -11,6 +11,7 @@ import { useGraphMutation } from '@/composables/useGraphMutation'
 import SendMessageEditor from './SendMessageEditor.vue'
 import CommentEditor from './CommentEditor.vue'
 import BusinessHoursEditor from './BusinessHoursEditor.vue'
+import NodeDetailsEditor from './NodeDetailsEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -44,7 +45,7 @@ async function removeNode() {
         <SendMessageEditor v-if="node.type === 'sendMessage'" :node="node" />
         <CommentEditor v-else-if="node.type === 'addComment'" :node="node" />
         <BusinessHoursEditor v-else-if="node.type === 'businessHours'" :node="node" />
-        <p v-else class="drawer-placeholder">Edit this {{ meta.label.toLowerCase() }} step.</p>
+        <NodeDetailsEditor v-else-if="node.type === 'trigger'" :node="node" />
         <div class="delete-zone">
           <template v-if="!confirmDelete">
             <div><strong>Delete node</strong><p>This removes the node and every connected edge.</p></div>

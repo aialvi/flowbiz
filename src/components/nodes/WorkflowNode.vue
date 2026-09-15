@@ -26,7 +26,7 @@ function add() { props.data.onAdd?.(props.id) }
       <p class="node-description" :title="data.description">{{ truncate(data.description) }}</p>
     </article>
     <Handle type="source" :position="Position.Bottom" :connectable="false" class="edge-source-handle" />
-    <div class="node-add-control" :class="{ 'is-terminal': data.terminal }">
+    <div v-if="!branch" class="node-add-control" :class="{ 'is-terminal': data.terminal }">
       <button type="button" class="node-add-button nodrag nopan" :aria-label="`Add node after ${data.title}`"
         @mousedown.stop @pointerdown.stop @click.stop="add">
         <Plus :size="14" :stroke-width="2.2" aria-hidden="true" />

@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
-import { isEditableType, validateNode } from '@/utils/validation'
+import { isCreatableType, isEditableType, validateNode } from '@/utils/validation'
 import { nodeVerticalStep } from '@/utils/nodes'
 
 function copyGraph(nodes, edges) {
   return {
     nodes: nodes.map(node => ({ ...node, position: { ...node.position }, data: { ...node.data,
       attachments: node.data.attachments?.map(item => ({ ...item })),
+      messages: node.data.messages?.map(item => ({ ...item })),
       times: node.data.times?.map(item => ({ ...item })),
     } })),
     edges: edges.map(edge => ({ ...edge })),
@@ -51,14 +52,14 @@ export const useCanvasStore = defineStore('canvas', {
       return true
     },
     addNode(fields, afterNodeId = null) {
-      if (Object.keys(validateNode(fields)).length) throw new Error('Invalid node fields')
+      if (!isCreatableType(fields.type) || Object.keys(validateNode(fields)).length) throw new Error('Invalid node fields')
       const source = afterNodeId == null ? null : this.nodeById(afterNodeId)
       if (afterNodeId != null && !source) throw new Error('Source node not found')
       this.record()
       const id = crypto.randomUUID()
       const type = fields.type
       const data = { title: fields.title.trim(), description: fields.description.trim(), parentId: source?.id ?? '-1' }
-      if (type === 'sendMessage') Object.assign(data, { message: '', attachments: [] })
+      if (type === 'sendMessage') Object.assign(data, { message: '', messages: [{ id: `${id}-text-0`, text: '' }], attachments: [] })
       if (type === 'addComment') data.comment = ''
       if (type === 'businessHours') Object.assign(data, { timezone: 'UTC', times: ['mon', 'tue', 'wed', 'thu', 'fri'].map(day => ({ day, startTime: '09:00', endTime: '17:00' })) })
       const maxX = Math.max(0, ...this.nodes.map(node => node.position.x))

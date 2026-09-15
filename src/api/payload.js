@@ -67,7 +67,8 @@ export function normalizePayload(payload) {
     if (!defaults[type]) throw new Error(`Unsupported node type: ${record.type}`)
     const data = { title: record.name || defaults[type][0], description: record.description || defaults[type][1], parentId: String(record.parentId ?? '-1') }
     if (type === 'sendMessage') {
-      data.message = (source.payload || []).filter(item => item.type === 'text').map(item => item.text).join('\n')
+      data.messages = (source.payload || []).filter(item => item.type === 'text').map((item, index) => ({ id: `${id}-text-${index}`, text: item.text || '' }))
+      data.message = data.messages.map(item => item.text).join('\n')
       data.attachments = (source.payload || []).filter(item => item.type === 'attachment').map((item, index) => ({
         id: `${id}-attachment-${index}`, url: item.attachment,
         name: decodeURIComponent(item.attachment.split('/').pop().split('?')[0]) || 'Attachment',

@@ -6,7 +6,7 @@ test('edits message details, clears text, uploads a file and keeps edits after c
   const drawer = page.getByRole('dialog')
   await drawer.getByLabel('Title', { exact: true }).fill('A better welcome')
   await drawer.getByLabel('Description', { exact: true }).fill('Greeting for every new chat')
-  await drawer.getByLabel('Message', { exact: true }).fill('Hello from Flowbiz')
+  await drawer.getByLabel('Message text 1', { exact: true }).fill('Hello from Flowbiz')
   await drawer.getByLabel('Upload attachments').setInputFiles({ name: 'brief.txt', mimeType: 'text/plain', buffer: Buffer.from('notes') })
   await expect(drawer.getByText('brief.txt')).toBeVisible()
   await drawer.getByRole('button', { name: 'Save changes' }).click()
@@ -14,9 +14,9 @@ test('edits message details, clears text, uploads a file and keeps edits after c
   await canvasNode(page, 'b0653a').click()
   await expect(drawer.getByLabel('Title', { exact: true })).toHaveValue('A better welcome')
   await expect(drawer.getByText('brief.txt')).toBeVisible()
-  await drawer.getByRole('button', { name: 'Clear message' }).click()
+  await drawer.getByRole('button', { name: 'Remove message text 1' }).click()
   await drawer.getByRole('button', { name: 'Save changes' }).click()
-  await expect(drawer.getByLabel('Message', { exact: true })).toHaveValue('')
+  await expect(drawer.getByText('No message text. Add one when needed.')).toBeVisible()
 })
 
 test('confirmed deletion removes the node and all of its edges', async ({ page }) => {

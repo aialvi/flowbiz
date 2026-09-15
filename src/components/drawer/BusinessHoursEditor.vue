@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
+import { TimePicker } from '@/components/ui/time-picker'
 import { Textarea } from '@/components/ui/textarea'
 import { useGraphMutation } from '@/composables/useGraphMutation'
 import { DESCRIPTION_LIMIT, validateNode } from '@/utils/validation'
@@ -36,7 +37,7 @@ async function save() {
     <fieldset class="hours-list"><legend>Weekly hours</legend>
       <div v-for="day in fields.schedule" :key="day.day" data-testid="day-row" class="hours-row">
         <label class="day-toggle"><input v-model="day.enabled" type="checkbox" :aria-label="`${day.label} enabled`" /><span>{{ day.label }}</span></label>
-        <template v-if="day.enabled"><div class="time-control"><Clock3 :size="14" aria-hidden="true" /><input v-model="day.startTime" type="time" class="time-input" :aria-label="`${day.label} start time`" /></div><span>to</span><div class="time-control"><Clock3 :size="14" aria-hidden="true" /><input v-model="day.endTime" type="time" class="time-input" :aria-label="`${day.label} end time`" /></div></template>
+        <template v-if="day.enabled"><div class="time-control"><Clock3 :size="14" aria-hidden="true" /><TimePicker v-model="day.startTime" :aria-label="`${day.label} start time`" /></div><span>to</span><div class="time-control"><Clock3 :size="14" aria-hidden="true" /><TimePicker v-model="day.endTime" :aria-label="`${day.label} end time`" /></div></template>
         <span v-else class="closed-label">Closed</span>
       </div>
     </fieldset>

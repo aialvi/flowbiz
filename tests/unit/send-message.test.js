@@ -8,7 +8,7 @@ function input(selector, value) {
   element.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
-it('edits and validates message fields and clears message text', async () => {
+it('edits and validates message fields and removes an individual message text', async () => {
   const { store } = await render(NodeDrawer, { route: '/node/b0653a' })
   input('[name="node-title"]', 'x')
   await flushPromises()
@@ -17,14 +17,15 @@ it('edits and validates message fields and clears message text', async () => {
   expect(document.body.textContent).toContain('Use at least 3 characters')
   input('[name="node-title"]', 'Welcome updated')
   input('[name="node-description"]', 'A fresh welcome')
-  input('[name="message"]', 'Updated message')
+  input('[name="message-text"]', 'Updated message')
   await flushPromises()
   document.querySelector('[data-testid="save-node"]').click()
   await flushPromises()
-  expect(store.nodeById('b0653a').data).toMatchObject({ title: 'Welcome updated', description: 'A fresh welcome', message: 'Updated message' })
-  document.querySelector('[data-testid="clear-message"]').click()
+  expect(store.nodeById('b0653a').data).toMatchObject({ title: 'Welcome updated', description: 'A fresh welcome', messages: [{ text: 'Updated message' }] })
+  document.querySelector('[aria-label="Remove message text 1"]').click()
   document.querySelector('[data-testid="save-node"]').click()
   await flushPromises()
+  expect(store.nodeById('b0653a').data.messages).toEqual([])
   expect(store.nodeById('b0653a').data.message).toBe('')
 })
 

@@ -1,6 +1,8 @@
-export const EDITABLE_TYPES = ['sendMessage', 'addComment', 'businessHours']
+export const EDITABLE_TYPES = ['trigger', 'sendMessage', 'addComment', 'businessHours']
+export const CREATABLE_TYPES = ['sendMessage', 'addComment', 'businessHours']
 export const DESCRIPTION_LIMIT = 200
 export function isEditableType(type) { return EDITABLE_TYPES.includes(type) }
+export function isCreatableType(type) { return CREATABLE_TYPES.includes(type) }
 export function validateNode({ title = '', description = '', type } = {}) {
   const errors = {}
   if (title.trim().length < 3) errors.title = 'Use at least 3 characters for the title.'
