@@ -52,3 +52,31 @@ it('guards read-only types, invalid fields, unknown IDs and invalid positions', 
   store.moveNode('1', { x: 10, y: 20 })
   expect(store.nodeById('1').position.x).toBe(10)
 })
+it('undoes and redoes moves and field edits in order, clearing redo after a new edit', () => {
+  const originalPosition = { ...store.nodeById('b0653a').position }
+  const originalTitle = store.nodeById('b0653a').data.title
+  store.moveNode('b0653a', { x: 700, y: 800 })
+  store.updateNode('b0653a', { title: 'Changed title' })
+  expect(store.canUndo).toBe(true)
+  store.undo()
+  expect(store.nodeById('b0653a').data.title).toBe(originalTitle)
+  expect(store.nodeById('b0653a').position).toEqual({ x: 700, y: 800 })
+  store.undo()
+  expect(store.nodeById('b0653a').position).toEqual(originalPosition)
+  store.redo()
+  store.redo()
+  expect(store.nodeById('b0653a').data.title).toBe('Changed title')
+  store.undo()
+  store.updateNode('b0653a', { title: 'Different edit' })
+  expect(store.canRedo).toBe(false)
+})
+it('restores created and deleted nodes and their edges without history during hydration', () => {
+  const initialEdges = store.edges.length
+  store.deleteNode('b6a0c1')
+  store.undo()
+  expect(store.nodeById('b6a0c1')).toBeDefined()
+  expect(store.edges).toHaveLength(initialEdges)
+  const id = store.addNode({ type: 'addComment', title: 'New node', description: 'Description' })
+  store.undo()
+  expect(store.nodeById(id)).toBeUndefined()
+})

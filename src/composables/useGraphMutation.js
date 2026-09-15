@@ -12,6 +12,8 @@ export function useGraphMutation() {
         case 'update': return store.updateNode(command.id, command.patch)
         case 'move': return store.moveNode(command.id, command.position)
         case 'delete': return store.deleteNode(command.id)
+        case 'undo': return store.undo()
+        case 'redo': return store.redo()
         default: throw new Error(`Unknown graph action: ${command.action}`)
       }
     },

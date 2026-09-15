@@ -1,11 +1,23 @@
 import { defineStore } from 'pinia'
 import { isEditableType, validateNode } from '@/utils/validation'
 
+function copyGraph(nodes, edges) {
+  return {
+    nodes: nodes.map(node => ({ ...node, position: { ...node.position }, data: { ...node.data,
+      attachments: node.data.attachments?.map(item => ({ ...item })),
+      times: node.data.times?.map(item => ({ ...item })),
+    } })),
+    edges: edges.map(edge => ({ ...edge })),
+  }
+}
+
 export const useCanvasStore = defineStore('canvas', {
-  state: () => ({ nodes: [], edges: [], hydrated: false }),
+  state: () => ({ nodes: [], edges: [], hydrated: false, past: [], future: [] }),
   getters: {
     nodeById: state => id => state.nodes.find(node => node.id === String(id)),
     editableCount: state => state.nodes.filter(node => isEditableType(node.type)).length,
+    canUndo: state => state.past.length > 0,
+    canRedo: state => state.future.length > 0,
   },
   actions: {
     hydrate(graph) {
@@ -13,9 +25,33 @@ export const useCanvasStore = defineStore('canvas', {
       this.nodes = graph.nodes
       this.edges = graph.edges
       this.hydrated = true
+      this.past = []
+      this.future = []
+    },
+    record() {
+      this.past.push(copyGraph(this.nodes, this.edges))
+      if (this.past.length > 100) this.past.shift()
+      this.future = []
+    },
+    undo() {
+      const snapshot = this.past.pop()
+      if (!snapshot) return false
+      this.future.push(copyGraph(this.nodes, this.edges))
+      this.nodes = snapshot.nodes
+      this.edges = snapshot.edges
+      return true
+    },
+    redo() {
+      const snapshot = this.future.pop()
+      if (!snapshot) return false
+      this.past.push(copyGraph(this.nodes, this.edges))
+      this.nodes = snapshot.nodes
+      this.edges = snapshot.edges
+      return true
     },
     addNode(fields) {
       if (Object.keys(validateNode(fields)).length) throw new Error('Invalid node fields')
+      this.record()
       const id = crypto.randomUUID()
       const type = fields.type
       const data = { title: fields.title.trim(), description: fields.description.trim() }
@@ -31,16 +67,19 @@ export const useCanvasStore = defineStore('canvas', {
       if (!node || !isEditableType(node.type)) throw new Error('This node cannot be edited')
       const data = { ...node.data, ...patch }
       if (Object.keys(validateNode({ ...data, type: node.type })).length) throw new Error('Invalid node fields')
+      this.record()
       this.nodes = this.nodes.map(item => item.id === id ? { ...item, data } : item)
     },
     moveNode(id, position) {
       if (!this.nodeById(id)) throw new Error('Node not found')
       if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) throw new Error('Invalid position')
+      this.record()
       this.nodes = this.nodes.map(item => item.id === id ? { ...item, position: { ...position } } : item)
     },
     deleteNode(id) {
       const node = this.nodeById(id)
       if (!node || !isEditableType(node.type)) throw new Error('This node cannot be deleted')
+      this.record()
       const removed = new Set([id])
       if (node.type === 'businessHours') {
         this.nodes.filter(item => item.data.parentId === id && ['success', 'failure'].includes(item.type)).forEach(item => removed.add(item.id))

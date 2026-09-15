@@ -12,6 +12,9 @@ import CreateNode from '@/components/CreateNode.vue'
 import NodeDrawer from '@/components/drawer/NodeDrawer.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isEditableType } from '@/utils/validation'
+import { useHistoryShortcuts } from '@/composables/useHistoryShortcuts'
+import { Undo2, Redo2 } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
@@ -38,13 +41,18 @@ function onNodeClick({ node }) {
   if (!isEditableType(node.type)) return
   router.push(route.params.nodeId === node.id ? '/' : `/node/${node.id}`)
 }
+function history(action) { mutation.mutate({ action }) }
+useHistoryShortcuts(history)
 </script>
 
 <template>
   <section class="workspace" aria-label="Workflow canvas">
     <div class="workspace-toolbar">
       <div><h1>Conversation workflow</h1><p>A warm welcome. Even when you’re away.</p></div>
-      <div class="toolbar-actions"><div class="workflow-state"><span class="status-dot" /> Draft workflow</div><CreateNode /></div>
+      <div class="toolbar-actions">
+        <div class="history-actions" aria-label="History controls"><Button variant="outline" size="icon-sm" aria-label="Undo" :disabled="!store.canUndo" @click="history('undo')"><Undo2 /></Button><Button variant="outline" size="icon-sm" aria-label="Redo" :disabled="!store.canRedo" @click="history('redo')"><Redo2 /></Button></div>
+        <div class="workflow-state"><span class="status-dot" /> Draft workflow</div><CreateNode />
+      </div>
     </div>
     <div v-if="query.isPending.value" class="canvas-message" role="status">Loading your workflow…</div>
     <div v-else-if="query.isError.value && !store.hydrated" class="canvas-message" role="alert">
