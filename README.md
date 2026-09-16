@@ -66,7 +66,7 @@ src/
   components/
     drawer/        per-node editors and route-driven Sheet shell
     nodes/         memoized Vue Flow node card
-    ui/            shadcn-vue generated primitives
+    ui/            reusable primitive components
   composables/     Query mutations and history keyboard shortcuts
   pages/           canvas workspace
   router/          canvas and deep-link routes
@@ -126,25 +126,15 @@ browser request should be re-verified if the bucket's CORS policy changes.
 
 The workflow graph normalization, deterministic layout, insertion/rewiring,
 history, node caching, validation, editors, and time-option generation are
-project-specific implementations. Vue Flow provides the canvas, while
-shadcn-vue/Reka primitives provide accessible low-level dialogs, sheets, and
-select behavior; no third-party workflow-editor implementation is copied.
-
-Following the September 2026 shadcn convention, `cn` is installed as a runtime
-dependency. `src/lib/utils.js` contains only:
-
-```js
-export { cn } from 'cn'
-```
-
-Generated Vue components import that re-export. There is no project-local
-`clsx`/`tailwind-merge` wrapper, and those legacy direct dependencies are absent.
+project-specific implementations. Vue Flow provides the canvas, and accessible
+low-level dialogs, sheets, and select behavior are implemented with Reka UI
+primitives; no third-party workflow-editor implementation is copied.
 
 ## Keyboard and accessibility
 
 - Tab reaches toolbar actions and editable canvas nodes.
 - Enter or Space opens the focused node; Escape closes its drawer.
-- Drawer focus is trapped and restored by the shadcn-vue/Reka dialog primitive.
+- Drawer focus is trapped and restored by the Reka dialog primitive.
 - A skip link moves directly to the workflow workspace.
 - Status changes use polite or assertive live regions as appropriate.
 - Visible focus rings, AA text contrast, explicit form labels, descriptive image
