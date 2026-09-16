@@ -44,7 +44,7 @@ async function removeNode() {
       <div v-if="node" class="drawer-body">
         <SendMessageEditor v-if="node.type === 'sendMessage'" :node="node" />
         <CommentEditor v-else-if="node.type === 'addComment'" :node="node" />
-        <BusinessHoursEditor v-else-if="node.type === 'businessHours'" :node="node" />
+        <BusinessHoursEditor v-else-if="node.type === 'businessHours'" :node="node" @saved="close" />
         <NodeDetailsEditor v-else-if="node.type === 'trigger'" :node="node" />
         <div class="delete-zone">
           <template v-if="!confirmDelete">

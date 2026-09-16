@@ -27,8 +27,8 @@ it('provides 24 curated whole-hour timezones without duplicate offsets', () => {
   expect(formatTimezoneOffset('America/New_York', new Date('2026-01-15T00:00:00Z'))).toBe('GMT-5:00')
 })
 
-it('renders all weekdays with themed time controls and saves range and timezone changes', async () => {
-  const { wrapper, store } = await render(NodeDrawer, { route: '/node/d09c08' })
+it('renders all weekdays, saves range and timezone changes, and closes on success', async () => {
+  const { wrapper, store, router } = await render(NodeDrawer, { route: '/node/d09c08' })
   expect(document.querySelectorAll('[data-testid="day-row"]')).toHaveLength(7)
   wrapper.findAllComponents(TimePicker)[0].vm.$emit('update:modelValue', '10:07')
   wrapper.findComponent(Select).vm.$emit('update:modelValue', 'Asia/Dhaka')
@@ -37,10 +37,11 @@ it('renders all weekdays with themed time controls and saves range and timezone 
   await flushPromises()
   expect(store.nodeById('d09c08').data.times[0].startTime).toBe('10:07')
   expect(store.nodeById('d09c08').data.timezone).toBe('Asia/Dhaka')
+  expect(router.currentRoute.value.path).toBe('/')
 })
 
 it('rejects equal business-hour times with an accessible schedule error', async () => {
-  const { wrapper, store } = await render(NodeDrawer, { route: '/node/d09c08' })
+  const { wrapper, store, router } = await render(NodeDrawer, { route: '/node/d09c08' })
   wrapper.findAllComponents(TimePicker)[0].vm.$emit('update:modelValue', '17:00')
   await flushPromises()
   document.querySelector('[data-testid="save-node"]').click()
@@ -48,4 +49,5 @@ it('rejects equal business-hour times with an accessible schedule error', async 
   expect(document.body.textContent).toContain('Monday needs two different valid times')
   expect(document.querySelector('[aria-label="Monday start time"]').getAttribute('aria-invalid')).toBe('true')
   expect(store.nodeById('d09c08').data.times[0].startTime).toBe('09:00')
+  expect(router.currentRoute.value.path).toBe('/node/d09c08')
 })

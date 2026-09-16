@@ -12,6 +12,7 @@ import { DESCRIPTION_LIMIT, validateNodeData } from '@/utils/validation'
 import { timezoneOptions, weekSchedule } from '@/utils/time'
 
 const props = defineProps({ node: { type: Object, required: true } })
+const emit = defineEmits(['saved'])
 const fields = reactive({
   title: props.node.data.title,
   description: props.node.data.description,
@@ -26,6 +27,7 @@ async function save() {
   if (Object.keys(errors.value).length) return
   const times = fields.schedule.filter(day => day.enabled).map(({ day, startTime, endTime }) => ({ day, startTime, endTime }))
   await mutation.mutateAsync({ action: 'update', id: props.node.id, patch: { title: fields.title, description: fields.description, timezone: fields.timezone, times } })
+  emit('saved')
 }
 </script>
 
@@ -42,6 +44,6 @@ async function save() {
       </div>
     </fieldset>
     <p v-if="errors.schedule" id="business-hours-error" class="field-error">{{ errors.schedule }}</p>
-    <Button data-testid="save-node" type="submit" :disabled="mutation.isPending.value">Save changes</Button>
+    <Button data-testid="save-node" type="submit" :disabled="mutation.isPending.value">{{ mutation.isPending.value ? 'Saving…' : 'Save changes' }}</Button>
   </form>
 </template>
