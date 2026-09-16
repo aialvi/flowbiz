@@ -42,13 +42,16 @@ pnpm exec playwright install chromium
 - Vue Flow canvas with custom Trigger, Send Message, Add Comment, Business
   Hours, Success, and Failure cards
 - Position updates via real drag interactions
+- Page-level Create New Node button for independent steps, including an empty canvas
 - Validated node creation for Send Message, Add Comment, and Business Hours
+- Click a node's circular `+` to insert the next step; drag from a `+` to another
+  node's top dot to connect existing or newly created steps
 - Route-addressable detail drawers at `/node/:nodeId`
 - Editable Trigger details and independently editable/removable message texts
 - Editable comments, weekly hours, 24 representative whole-hour timezones, and attachment tiles
 - Custom Reka Popover time picker with separate 24-hour and 60-minute columns
 - Confirmed deletion with connected-edge cleanup
-- Undo and redo for moves, edits, creates, and deletes
+- Undo and redo for moves, edits, creates, connections, and deletes
 - Keyboard navigation and motion/contrast accessibility considerations
 - Loading, retry, and inspected-payload fallback states
 
@@ -156,6 +159,12 @@ update boundary for defense in depth. It covers required title/description
 fields, their length limits, supported node types and timezones, valid and
 non-equal business-hour times, individual message-text limits and empty entries,
 optional comment length, attachment count, and a 10 MB per-file upload limit.
+Connection validation rejects missing nodes, self-links, duplicate edges, loops,
+and shortcuts to existing descendants at any depth. Invalid top-dot targets turn
+gray with a not-allowed cursor during a drag. Nodes without an ancestor/descendant
+relationship can still connect. Connections into the Trigger or display-only
+Success/Failure cards remain blocked. Manual
+connections live in the graph's edge list; `parentId` retains payload/branch ownership.
 Errors are linked to their controls with `aria-invalid` and `aria-describedby`.
 Overnight schedules remain valid because an end time earlier than the start time
 is a legitimate cross-midnight range.
@@ -194,7 +203,8 @@ exercised through the real Chromium suite rather than relying on snapshots.
 - There is no persistence backend because the source endpoint is read-only.
   Reloading resets edits; opening and closing drawers does not.
 - Uploaded file bytes are not sent anywhere and object URLs last only for the
-  current page session.
+  current page session. Removing a file retains its URL until page unload so undo
+  can restore the preview, not just its metadata.
 - Business Hours uses a custom two-column Reka Popover time picker so popup
   colors match the theme and every minute remains selectable. It emits the API's
   existing `HH:mm` wire format without a date library.

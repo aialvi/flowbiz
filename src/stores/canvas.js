@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { isCreatableType, isEditableType, validateNode, validateNodeData } from '@/utils/validation'
 import { nodeVerticalStep } from '@/utils/nodes'
+import { connectionError } from '@/utils/connections'
 
 function copyGraph(nodes, edges) {
   return {
@@ -96,6 +97,16 @@ export const useCanvasStore = defineStore('canvas', {
         this.nodes = [...this.nodes, { id, type, data, position }]
       }
       return id
+    },
+    connectNodes(connection) {
+      const error = connectionError(connection, this.nodes, this.edges)
+      if (error) throw new Error(error)
+      this.record()
+      const { source, target, sourceHandle, targetHandle } = connection
+      this.edges = [...this.edges, {
+        id: `edge-${source}-${target}`, source, target, sourceHandle, targetHandle,
+        type: 'smoothstep', selectable: false, focusable: false,
+      }]
     },
     updateNode(id, patch) {
       const node = this.nodeById(id)

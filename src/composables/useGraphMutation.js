@@ -11,6 +11,7 @@ export function useGraphMutation() {
         case 'create': return store.addNode(command.fields, command.afterNodeId)
         case 'update': return store.updateNode(command.id, command.patch)
         case 'move': return store.moveNode(command.id, command.position)
+        case 'connect': return store.connectNodes(command.connection)
         case 'delete': return store.deleteNode(command.id)
         case 'undo': return store.undo()
         case 'redo': return store.redo()

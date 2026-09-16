@@ -53,3 +53,20 @@ it('marks an end-of-series add control as terminal for ash styling', () => {
   })
   expect(wrapper.get('.node-add-control').classes()).toContain('is-terminal')
 })
+
+it('does not open creation after a drag, including a cancelled drag back to its starting point', async () => {
+  const add = vi.fn()
+  const wrapper = mount(WorkflowNode, {
+    props: { id: 'message', type: 'sendMessage', data: { title: 'Message', description: 'Description', onAdd: add } },
+    global: { stubs: { Handle: { template: '<div><slot /></div>' } } },
+  })
+  const button = wrapper.get('button')
+  await button.trigger('pointerdown', { clientX: 10, clientY: 10 })
+  window.dispatchEvent(new MouseEvent('pointermove', { clientX: 100, clientY: 100 }))
+  window.dispatchEvent(new MouseEvent('pointerup', { clientX: 10, clientY: 10 }))
+  button.element.dispatchEvent(new MouseEvent('click', { detail: 1, bubbles: true }))
+  expect(add).not.toHaveBeenCalled()
+  // A keyboard activation remains available after dragging.
+  button.element.dispatchEvent(new MouseEvent('click', { detail: 0, bubbles: true }))
+  expect(add).toHaveBeenCalledWith('message')
+})

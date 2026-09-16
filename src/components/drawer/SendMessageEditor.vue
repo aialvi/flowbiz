@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue'
-import { FileText, Image, Paperclip, Trash2 } from '@lucide/vue'
+import { FileText, Paperclip, Trash2 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +12,7 @@ const props = defineProps({ node: { type: Object, required: true } })
 const fields = reactive({
   title: props.node.data.title,
   description: props.node.data.description,
-  messages: (props.node.data.messages?.length ? props.node.data.messages : [{ id: `${props.node.id}-text-0`, text: props.node.data.message || '' }]).map(item => ({ ...item })),
+  messages: (props.node.data.messages ?? (props.node.data.message ? [{ id: `${props.node.id}-text-0`, text: props.node.data.message }] : [])).map(item => ({ ...item })),
 })
 const errors = ref({})
 const mutation = useGraphMutation()
@@ -48,8 +48,7 @@ async function upload(event) {
   event.target.value = ''
 }
 async function removeAttachment(id) {
-  const attachment = props.node.data.attachments.find(item => item.id === id)
-  if (attachment?.url?.startsWith('blob:')) URL.revokeObjectURL?.(attachment.url)
+  // History can restore this attachment. Keep its object URL alive for this page session.
   await mutation.mutateAsync({ action: 'update', id: props.node.id, patch: { attachments: props.node.data.attachments.filter(item => item.id !== id) } })
 }
 </script>

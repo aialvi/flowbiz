@@ -30,7 +30,7 @@ it('maps all real records, parent edges, times, messages and attachments without
   expect(graph.edges).toHaveLength(6)
   expect(graph.nodes.find(n => n.id === '1')).toMatchObject({ type: 'trigger', data: { title: 'Conversation Opened' } })
   expect(graph.nodes.find(n => n.id === 'd09c08')).toMatchObject({ type: 'businessHours', data: { timezone: 'UTC', times: fixture[2].data.times } })
-  expect(graph.nodes.find(n => n.id === 'b0653a').data).toMatchObject({ title: 'Welcome Message', message: 'Hello there\n\nwelcome to the chat!', messages: [{ text: 'Hello there\n\nwelcome to the chat!' }], attachments: [{ url: fixture[5].data.payload[1].attachment }] })
+  expect(graph.nodes.find(n => n.id === 'b0653a').data).toMatchObject({ title: 'Welcome Message', message: 'Hello there\n\nwelcome to the chat!', messages: [{ text: 'Hello there\n\nwelcome to the chat!' }], attachments: [{ url: fixture[5].data.payload[1].attachment, mime: 'image/*', name: '354.jpg' }] })
   expect(graph.nodes.find(n => n.id === 'e879e4').data.comment).toBe('User message during off hours')
   expect(graph.nodes.find(n => n.id === '161f52').type).toBe('success')
   const failure = graph.nodes.find(n => n.id === '28c4b9')

@@ -11,6 +11,7 @@ import { useCanvasStore } from '@/stores/canvas'
 import { DESCRIPTION_LIMIT, validateNode } from '@/utils/validation'
 
 const open = ref(false)
+const emit = defineEmits(['created'])
 const afterNodeId = ref(null)
 const fields = reactive({ title: '', description: '', type: 'sendMessage' })
 const errors = ref({})
@@ -30,9 +31,11 @@ function openAfter(id) {
 async function submit() {
   errors.value = validateNode(fields)
   if (Object.keys(errors.value).length) return
-  await mutation.mutateAsync({ action: 'create', fields: { ...fields }, afterNodeId: afterNodeId.value })
+  const id = await mutation.mutateAsync({ action: 'create', fields: { ...fields }, afterNodeId: afterNodeId.value })
+  const sourceId = afterNodeId.value
   open.value = false
   reset()
+  emit('created', id, sourceId)
 }
 defineExpose({ openAfter })
 </script>

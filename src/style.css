@@ -24,7 +24,8 @@ button:disabled { cursor: not-allowed; }
 .app-header { height: 72px; display: flex; align-items: center; gap: 48px; padding: 0 28px; border-bottom: 1px solid #e4e7ed; background: white; }
 .brand { color: #6352d7; text-decoration: none; font-size: 23px; font-weight: 750; letter-spacing: -1px; }
 main { flex: 1; min-height: 0; position: relative; }
-.workspace { height: 100%; display: flex; flex-direction: column; }
+.workspace { position: relative; height: 100%; display: flex; flex-direction: column; }
+.canvas-create-button { position: absolute; top: 20px; right: 24px; z-index: 5; box-shadow: 0 3px 12px #24304414; }
 .history-actions { display: flex; gap: 5px; margin-left: auto; }
 .canvas-footer { display: flex; align-items: center; justify-content: space-between; background: white; border-top: 1px solid #e4e7ed; padding: 12px 25px; font-size: 11px; color: #667085; }
 .canvas-message { flex: 1; display: grid; align-content: center; justify-items: center; gap: 15px; }
@@ -74,9 +75,10 @@ main { flex: 1; min-height: 0; position: relative; }
 .node-description { color: #667085; font-size: 11px; line-height: 1.6; margin: 12px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .workflow-node-shell > .vue-flow__handle { width: 7px; height: 7px; border: 1.5px solid #c9cfdb; background: white; }
 .workflow-node-shell > .edge-source-handle { opacity: 0; }
-.node-add-control { position: absolute; z-index: 2; left: 50%; top: calc(100% + 11px); width: 28px; height: 28px; transform: translateX(-50%); transition: transform .16s; }
+.workflow-node-shell > .vue-flow__handle.node-add-control { position: absolute; z-index: 2; left: 50%; top: calc(100% + 11px); bottom: auto; width: 28px; height: 28px; border: 0; background: transparent; transform: translateX(-50%); }
 .node-add-control::before { content: ''; position: absolute; left: 50%; bottom: 100%; width: 1.5px; height: 11px; background: #c9cfdb; transform: translateX(-50%); pointer-events: none; }
-.node-add-control:hover, .node-add-control:focus-within { transform: translateX(-50%) scale(1.06); }
+.node-head-handle.valid { border-color: var(--node-color); background: var(--node-color); outline: 3px solid color-mix(in srgb, var(--node-color) 30%, transparent); outline-offset: 3px; }
+.workflow-node-shell > .node-head-handle.is-connection-blocked { cursor: not-allowed; border-color: #98a2b3; background: #d0d5dd; outline: 3px solid #e4e7ec; outline-offset: 3px; }
 .node-add-button { width: 100%; height: 100%; display: grid; place-items: center; padding: 0; border: 1.5px solid var(--node-color); border-radius: 50%; background: white; color: var(--node-color); box-shadow: 0 2px 7px #24304414; transition: box-shadow .16s; }
 .node-add-button:hover, .node-add-button:focus-visible { box-shadow: 0 3px 10px color-mix(in srgb, var(--node-color) 28%, transparent); }
 .node-add-control.is-terminal .node-add-button { border-color: #aeb6c3; background: #f8f9fb; color: #98a2b3; }
@@ -103,7 +105,10 @@ main { flex: 1; min-height: 0; position: relative; }
 .empty-field-copy { margin: 0; padding: 12px; border: 1px dashed var(--border); border-radius: 8px; color: var(--muted-foreground); font-size: 11px; }
 .attachment-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
 .attachment-tile, .upload-tile { min-height: 74px; display: flex; align-items: center; gap: 9px; border: 1px solid #e1e5ec; border-radius: 9px; padding: 9px; font-size: 11px; color: #687285; min-width: 0; }
-.attachment-tile img { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; }
+.attachment-tile { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.attachment-tile img, .attachment-tile .file-icon { grid-column: 1 / -1; width: 100%; height: 120px; border-radius: 6px; background: #f7f8fa; }
+.attachment-tile img { object-fit: contain; }
+.attachment-tile .file-icon { display: grid; place-items: center; }
 .attachment-tile > span:nth-last-of-type(1) { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-icon { display: grid; place-items: center; width: 42px; height: 42px; background: #f1f3f7; border-radius: 6px; }
 .upload-tile { justify-content: center; border-style: dashed; cursor: pointer; color: #6d5ce7; }

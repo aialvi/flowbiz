@@ -100,3 +100,41 @@ it('restores created and deleted nodes and their edges without history during hy
   store.undo()
   expect(store.nodeById(id)).toBeUndefined()
 })
+
+it('connects existing and new nodes from plus to head, with undo/redo and deletion cleanup', () => {
+  const id = store.addNode({ type: 'addComment', title: 'Connected note', description: 'A new path' })
+  const connection = { source: 'b0653a', target: id, sourceHandle: 'plus', targetHandle: 'head' }
+  store.connectNodes(connection)
+  expect(store.edges.at(-1)).toMatchObject(connection)
+  expect(store.edges).toHaveLength(7)
+  store.undo()
+  expect(store.edges).toHaveLength(6)
+  expect(store.nodeById(id)).toBeDefined()
+  store.redo()
+  expect(store.edges.at(-1)).toMatchObject(connection)
+  store.deleteNode(id)
+  expect(store.edges).toHaveLength(6)
+})
+
+it('rejects invalid connections without changing graph history', () => {
+  const connect = (source, target, handles = {}) => store.connectNodes({ source, target, sourceHandle: 'plus', targetHandle: 'head', ...handles })
+  expect(() => connect('missing', 'b0653a')).toThrow('exist')
+  expect(() => connect('b0653a', 'b0653a')).toThrow('itself')
+  expect(() => connect('b0653a', '1')).toThrow('cannot be connected')
+  expect(() => connect('161f52', 'b0653a')).toThrow('cannot be connected')
+  expect(() => connect('b0653a', '161f52')).toThrow('cannot be connected')
+  expect(() => connect('b0653a', 'b6a0c1', { targetHandle: null })).toThrow('circular +')
+  expect(() => connect('b0653a', 'b6a0c1', { targetHandle: 'plus' })).toThrow('top dot')
+  expect(() => connect('b6a0c1', 'e879e4')).toThrow('already connected')
+  expect(() => connect('e879e4', 'd09c08')).toThrow('loop')
+  expect(() => connect('d09c08', 'e879e4')).toThrow('descendant')
+  expect(store.past).toHaveLength(0)
+  expect(store.edges).toHaveLength(6)
+})
+
+it('preserves manually connected handles when inserting into a series', () => {
+  store.connectNodes({ source: 'b0653a', target: 'e879e4', sourceHandle: 'plus', targetHandle: 'head' })
+  const id = store.addNode({ type: 'addComment', title: 'Middle note', description: 'Inserted step' }, 'b0653a')
+  expect(store.edges).toContainEqual(expect.objectContaining({ source: id, target: 'e879e4', sourceHandle: 'plus', targetHandle: 'head' }))
+  expect(store.edges).not.toContainEqual(expect.objectContaining({ source: 'b0653a', target: 'e879e4' }))
+})

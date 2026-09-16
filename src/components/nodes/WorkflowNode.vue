@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import { Plus } from '@lucide/vue'
 import { nodeMeta, truncate } from '@/utils/nodes'
@@ -9,12 +9,37 @@ const meta = computed(() => nodeMeta(props.type))
 const branch = computed(() => ['success', 'failure'].includes(props.type))
 const editable = computed(() => isEditableType(props.type))
 function open() { if (editable.value) props.data.onOpen?.(props.id, props.type) }
-function add() { props.data.onAdd?.(props.id) }
+let gestureStart
+let dragged = false
+function trackGesture(event) {
+  if (gestureStart && Math.hypot(event.clientX - gestureStart.x, event.clientY - gestureStart.y) > 5) dragged = true
+}
+function endGesture(event) {
+  if (event) trackGesture(event)
+  gestureStart = null
+  window.removeEventListener('pointermove', trackGesture)
+  window.removeEventListener('pointerup', endGesture)
+  window.removeEventListener('pointercancel', endGesture)
+}
+function startGesture(event) {
+  endGesture()
+  dragged = false
+  gestureStart = { x: event.clientX, y: event.clientY }
+  window.addEventListener('pointermove', trackGesture)
+  window.addEventListener('pointerup', endGesture)
+  window.addEventListener('pointercancel', endGesture)
+}
+function add(event) {
+  if (!dragged || event.detail === 0) props.data.onAdd?.(props.id)
+}
+onBeforeUnmount(endGesture)
 </script>
 
 <template>
   <div v-memo="[data, selected]" class="workflow-node-shell" :style="{ '--node-color': meta.color }">
-    <Handle v-if="type !== 'trigger'" type="target" :position="Position.Top" :connectable="false" />
+    <Handle v-if="type !== 'trigger'" id="head" type="target" :position="Position.Top"
+      :connectable="!branch" :connectable-start="false" class="node-head-handle"
+      :class="{ 'is-connection-blocked': data.connectionBlocked }" @click.stop />
     <article class="workflow-node" :class="[{ 'branch-node': branch, 'is-selected': selected }, `node-${type}`]"
       :tabindex="editable ? 0 : undefined" :role="editable ? 'button' : 'group'" :aria-label="editable ? `Open ${data.title}` : data.title"
       @keydown.enter.stop.prevent="open" @keydown.space.stop.prevent="open">
@@ -26,11 +51,13 @@ function add() { props.data.onAdd?.(props.id) }
       <p class="node-description" :title="data.description">{{ truncate(data.description) }}</p>
     </article>
     <Handle type="source" :position="Position.Bottom" :connectable="false" class="edge-source-handle" />
-    <div v-if="!branch" class="node-add-control" :class="{ 'is-terminal': data.terminal }">
+    <Handle v-if="!branch" id="plus" type="source" :position="Position.Bottom" :connectable="true"
+      :connectable-end="false" :is-valid-connection="data.isValidConnection"
+      class="node-add-control" :class="{ 'is-terminal': data.terminal }" @pointerdown.capture="startGesture">
       <button type="button" class="node-add-button nodrag nopan" :aria-label="`Add node after ${data.title}`"
-        @mousedown.stop @pointerdown.stop @click.stop="add">
+        title="Click to add a node; drag to another node’s top dot to connect" @click.stop="add">
         <Plus :size="14" :stroke-width="2.2" aria-hidden="true" />
       </button>
-    </div>
+    </Handle>
   </div>
 </template>

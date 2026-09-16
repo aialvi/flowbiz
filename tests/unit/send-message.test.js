@@ -10,7 +10,7 @@ function input(selector, value) {
 }
 
 it('edits and validates message fields and removes an individual message text', async () => {
-  const { store } = await render(NodeDrawer, { route: '/node/b0653a' })
+  const { store, router } = await render(NodeDrawer, { route: '/node/b0653a' })
   input('[name="node-title"]', 'x')
   await flushPromises()
   document.querySelector('[data-testid="save-node"]').click()
@@ -28,6 +28,16 @@ it('edits and validates message fields and removes an individual message text', 
   await flushPromises()
   expect(store.nodeById('b0653a').data.messages).toEqual([])
   expect(store.nodeById('b0653a').data.message).toBe('')
+  await router.push('/')
+  await flushPromises()
+  await router.push('/node/b0653a')
+  await flushPromises()
+  expect(document.querySelector('[name="message-text"]')).toBeNull()
+  input('[name="node-title"]', 'No text required')
+  await flushPromises()
+  document.querySelector('[data-testid="save-node"]').click()
+  await flushPromises()
+  expect(store.nodeById('b0653a').data.title).toBe('No text required')
 })
 
 it('shows existing attachments and uploads any new file in memory', async () => {
