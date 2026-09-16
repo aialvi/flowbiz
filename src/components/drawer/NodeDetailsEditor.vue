@@ -23,13 +23,13 @@ async function save() {
   <form class="drawer-form" @submit.prevent="save">
     <div class="field-group">
       <Label for="details-title">Title</Label>
-      <Input id="details-title" v-model="fields.title" name="node-title" />
-      <p v-if="errors.title" class="field-error">{{ errors.title }}</p>
+      <Input id="details-title" v-model="fields.title" name="node-title" aria-describedby="details-title-error" :aria-invalid="!!errors.title" />
+      <p v-if="errors.title" id="details-title-error" class="field-error">{{ errors.title }}</p>
     </div>
     <div class="field-group">
       <div class="field-label-row"><Label for="details-description">Description</Label><span>{{ fields.description.length }} / {{ DESCRIPTION_LIMIT }}</span></div>
-      <Textarea id="details-description" v-model="fields.description" name="node-description" :maxlength="DESCRIPTION_LIMIT + 1" />
-      <p v-if="errors.description" class="field-error">{{ errors.description }}</p>
+      <Textarea id="details-description" v-model="fields.description" name="node-description" :maxlength="DESCRIPTION_LIMIT + 1" aria-describedby="details-description-error" :aria-invalid="!!errors.description" />
+      <p v-if="errors.description" id="details-description-error" class="field-error">{{ errors.description }}</p>
     </div>
     <Button data-testid="save-node" type="submit" :disabled="mutation.isPending.value">Save changes</Button>
   </form>

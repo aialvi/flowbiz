@@ -27,6 +27,7 @@ watch(query.data, data => { if (data) store.hydrate(normalizePayload(data)) }, {
 // Vue Flow owns transient drag/selection state, separately from Pinia's saved graph.
 const nodeTypes = Object.fromEntries(['trigger', 'sendMessage', 'addComment', 'businessHours', 'success', 'failure'].map(type => [type, markRaw(WorkflowNode)]))
 const nodeCache = new WeakMap()
+const sourcesWithOutgoingEdges = computed(() => new Set(store.edges.map(edge => edge.source)))
 function openNode(id, type) {
   if (!isEditableType(type)) return
   router.push(route.params.nodeId === id ? '/' : `/node/${id}`)
@@ -35,7 +36,7 @@ function addAfterNode(id) {
   createNode.value?.openAfter(id)
 }
 const flowNodes = computed(() => store.nodes.map(node => {
-  const terminal = !store.edges.some(edge => edge.source === node.id)
+  const terminal = !sourcesWithOutgoingEdges.value.has(node.id)
   const cached = nodeCache.get(node)
   if (!cached || cached.terminal !== terminal) {
     nodeCache.set(node, {

@@ -61,9 +61,6 @@ main { flex: 1; min-height: 0; position: relative; }
 .select-item[data-state="checked"] { background: color-mix(in srgb, #6d5ce7 10%, var(--popover)); color: #5948cc; }
 .select-item-indicator { position: absolute; left: 10px; display: grid; place-items: center; color: #6d5ce7; }
 .select-scroll-button { height: 28px; display: grid; place-items: center; background: var(--popover); color: var(--muted-foreground); }
-.time-select-content { min-width: 132px; }
-.time-select-item[data-state="checked"] { background: #6d5ce7; color: #fff; }
-.time-select-item[data-state="checked"] .select-item-indicator { color: #fff; }
 .workflow-node-shell { position: relative; width: 280px; }
 .workflow-node { width: 100%; padding: 17px 18px 15px; border: 1px solid #dfe3eb; border-radius: 11px; background: white; box-shadow: 0 3px 7px #24304406; transition: border-color .18s, box-shadow .18s; }
 .workflow-node:hover, .workflow-node.is-selected { border-color: #a697ee; box-shadow: 0 3px 12px #6352d712; }
@@ -124,9 +121,15 @@ main { flex: 1; min-height: 0; position: relative; }
 .time-control:hover { border-color: color-mix(in srgb, var(--foreground) 24%, var(--input)); }
 .time-control:focus-within { border-color: #8b7bf5; box-shadow: 0 0 0 3px #8b7bf526; color: #6d5ce7; }
 .time-control > svg { flex-shrink: 0; }
-.time-control .time-select-trigger { height: 34px; min-width: 0; border: 0; padding: 0; background: transparent; font-size: 11px; box-shadow: none; }
-.time-control .time-select-trigger[data-state="open"], .time-control .time-select-trigger:focus-visible { border: 0; box-shadow: none; }
-.time-control .time-select-trigger > svg { width: 13px; height: 13px; }
+.time-picker-trigger { width: 100%; min-width: 0; height: 34px; display: flex; align-items: center; justify-content: space-between; gap: 5px; border: 0; padding: 0; background: transparent; color: var(--foreground); font-size: 11px; outline: none; }
+.time-picker-trigger > svg { flex-shrink: 0; color: var(--muted-foreground); transition: transform .15s; }
+.time-picker-trigger[data-state="open"] > svg { transform: rotate(180deg); }
+.time-picker-dropdown { z-index: 90; display: flex; height: 224px; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--popover); color: var(--popover-foreground); box-shadow: 0 10px 30px #2430441f; }
+.time-picker-col { width: 68px; overflow-y: auto; overscroll-behavior: contain; padding: 5px; scrollbar-width: thin; }
+.time-picker-col + .time-picker-col { border-left: 1px solid var(--border); }
+.time-picker-item { width: 100%; min-height: 32px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: inherit; font-size: 11px; font-variant-numeric: tabular-nums; outline: none; }
+.time-picker-item:hover, .time-picker-item:focus-visible { background: var(--accent); color: var(--accent-foreground); }
+.time-picker-item.active, .time-picker-item.active:hover, .time-picker-item.active:focus-visible { background: #6d5ce7; color: #fff; font-weight: 650; }
 .closed-label { grid-column: 2 / -1; color: #667085; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

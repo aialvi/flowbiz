@@ -14,7 +14,7 @@ it('hydrates once and protects local edits from query remounts', () => {
 })
 it('adds unique editable nodes with independent defaults and sensible placement', () => {
   const id = store.addNode({ type: 'sendMessage', title: 'Hello', description: 'Say hello' })
-  expect(store.nodeById(id)).toMatchObject({ type: 'sendMessage', data: { message: '', messages: [{ text: '' }], attachments: [], title: 'Hello' } })
+  expect(store.nodeById(id)).toMatchObject({ type: 'sendMessage', data: { message: '', messages: [], attachments: [], title: 'Hello' } })
   const next = store.addNode({ type: 'businessHours', title: 'Schedule', description: 'A schedule' })
   expect(next).not.toBe(id)
   expect(store.nodeById(next).position).not.toEqual(store.nodeById(id).position)
@@ -64,6 +64,9 @@ it('guards read-only types, invalid fields, unknown IDs and invalid positions', 
   expect(() => store.updateNode('161f52', { title: 'Change' })).toThrow()
   expect(() => store.updateNode('1', { title: 'Conversation Started' })).not.toThrow()
   expect(() => store.updateNode('missing', {})).toThrow()
+  expect(() => store.updateNode('b0653a', { messages: [{ id: 'blank', text: '' }] })).toThrow()
+  expect(() => store.updateNode('e879e4', { comment: 'x'.repeat(2001) })).toThrow()
+  expect(() => store.updateNode('d09c08', { times: [{ day: 'mon', startTime: '09:00', endTime: '09:00' }] })).toThrow()
   expect(() => store.moveNode('1', { x: NaN, y: 0 })).toThrow()
   store.moveNode('1', { x: 10, y: 20 })
   expect(store.nodeById('1').position.x).toBe(10)

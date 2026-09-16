@@ -9,6 +9,16 @@ export function formatTime(value) {
   return `${hour % 12 || 12}:${match[2]} ${hour < 12 ? 'AM' : 'PM'}`
 }
 export function formatTimeRange(range) { return `${formatTime(range.startTime)} – ${formatTime(range.endTime)}` }
+export function isValidTime(value) { return /^([01]\d|2[0-3]):[0-5]\d$/.test(value || '') }
+export const TIME_HOURS = Object.freeze(Array.from({ length: 24 }, (_, index) => index))
+export const TIME_MINUTES = Object.freeze(Array.from({ length: 60 }, (_, index) => index))
+export function padTimePart(value) { return String(value).padStart(2, '0') }
+export function parseTimeParts(value, fallback = '00:00') {
+  const source = isValidTime(value) ? value : fallback
+  const [hour, minute] = source.split(':').map(Number)
+  return { hour, minute }
+}
+export function createTimeValue(hour, minute) { return `${padTimePart(hour)}:${padTimePart(minute)}` }
 export function weekSchedule(times = []) {
   return days.map(([day, label]) => {
     const range = times.find(item => item.day === day)

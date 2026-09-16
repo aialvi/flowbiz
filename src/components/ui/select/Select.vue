@@ -21,8 +21,9 @@ const props = defineProps({
   id: String,
   name: String,
   ariaLabel: String,
+  ariaInvalid: { type: Boolean, default: false },
+  ariaDescribedby: String,
   placeholder: { type: String, default: 'Select an option' },
-  variant: { type: String, default: 'default' },
 })
 const emit = defineEmits(['update:modelValue'])
 const open = ref(false)
@@ -31,15 +32,15 @@ const selectedLabel = computed(() => props.options.find(option => option.value =
 
 <template>
   <SelectRoot v-model:open="open" :model-value="modelValue" @update:model-value="value => emit('update:modelValue', value)">
-    <SelectTrigger :id="id" :class="['select-trigger', { 'time-select-trigger': variant === 'time' }]" :aria-label="ariaLabel">
+    <SelectTrigger :id="id" class="select-trigger" :aria-label="ariaLabel" :aria-invalid="ariaInvalid || undefined" :aria-describedby="ariaDescribedby">
       <SelectValue :placeholder="placeholder">{{ selectedLabel }}</SelectValue>
       <ChevronDown :size="15" aria-hidden="true" />
     </SelectTrigger>
     <SelectPortal>
-      <SelectContent :class="['select-content', { 'time-select-content': variant === 'time' }]" position="popper" :side-offset="5">
+      <SelectContent class="select-content" position="popper" :side-offset="5">
         <SelectScrollUpButton class="select-scroll-button"><ChevronUp :size="15" /></SelectScrollUpButton>
         <SelectViewport class="select-viewport">
-          <SelectItem v-for="option in open ? options : []" :key="option.value" :class="['select-item', { 'time-select-item': variant === 'time' }]" :value="option.value" :text-value="option.value">
+          <SelectItem v-for="option in open ? options : []" :key="option.value" class="select-item" :value="option.value" :text-value="option.value">
             <SelectItemIndicator class="select-item-indicator"><Check :size="14" /></SelectItemIndicator>
             <SelectItemText>{{ option.label }}</SelectItemText>
           </SelectItem>

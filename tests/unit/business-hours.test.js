@@ -2,7 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import NodeDrawer from '@/components/drawer/NodeDrawer.vue'
 import { Select } from '@/components/ui/select'
 import { TimePicker } from '@/components/ui/time-picker'
-import { formatTime, formatTimeRange, formatTimezoneOffset, timezoneOptions, weekSchedule } from '@/utils/time'
+import { createTimeValue, formatTime, formatTimeRange, formatTimezoneOffset, parseTimeParts, timezoneOptions, weekSchedule } from '@/utils/time'
 import { render } from '../helpers'
 
 it('formats valid times and expands missing weekdays as closed', () => {
@@ -10,6 +10,8 @@ it('formats valid times and expands missing weekdays as closed', () => {
   expect(formatTime('17:00')).toBe('5:00 PM')
   expect(formatTime('bad')).toBe('bad')
   expect(formatTimeRange({ startTime: '09:00', endTime: '17:00' })).toBe('9:00 AM – 5:00 PM')
+  expect(parseTimeParts('10:07')).toEqual({ hour: 10, minute: 7 })
+  expect(createTimeValue(10, 7)).toBe('10:07')
   const schedule = weekSchedule([{ day: 'mon', startTime: '09:00', endTime: '17:00' }])
   expect(schedule).toHaveLength(7)
   expect(schedule[0].label).toBe('Monday')
@@ -28,11 +30,22 @@ it('provides 24 curated whole-hour timezones without duplicate offsets', () => {
 it('renders all weekdays with themed time controls and saves range and timezone changes', async () => {
   const { wrapper, store } = await render(NodeDrawer, { route: '/node/d09c08' })
   expect(document.querySelectorAll('[data-testid="day-row"]')).toHaveLength(7)
-  wrapper.findAllComponents(TimePicker)[0].vm.$emit('update:modelValue', '10:15')
+  wrapper.findAllComponents(TimePicker)[0].vm.$emit('update:modelValue', '10:07')
   wrapper.findComponent(Select).vm.$emit('update:modelValue', 'Asia/Dhaka')
   await flushPromises()
   document.querySelector('[data-testid="save-node"]').click()
   await flushPromises()
-  expect(store.nodeById('d09c08').data.times[0].startTime).toBe('10:15')
+  expect(store.nodeById('d09c08').data.times[0].startTime).toBe('10:07')
   expect(store.nodeById('d09c08').data.timezone).toBe('Asia/Dhaka')
+})
+
+it('rejects equal business-hour times with an accessible schedule error', async () => {
+  const { wrapper, store } = await render(NodeDrawer, { route: '/node/d09c08' })
+  wrapper.findAllComponents(TimePicker)[0].vm.$emit('update:modelValue', '17:00')
+  await flushPromises()
+  document.querySelector('[data-testid="save-node"]').click()
+  await flushPromises()
+  expect(document.body.textContent).toContain('Monday needs two different valid times')
+  expect(document.querySelector('[aria-label="Monday start time"]').getAttribute('aria-invalid')).toBe('true')
+  expect(store.nodeById('d09c08').data.times[0].startTime).toBe('09:00')
 })

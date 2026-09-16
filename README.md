@@ -7,33 +7,34 @@ supports creating, editing, deleting, and undoing local workflow changes.
 ## Prerequisites
 
 - Node.js `24.21.0` LTS (pinned in `.nvmrc`)
-- npm 11+
-- Chromium for the Playwright suite (`npx playwright install chromium`)
+- pnpm `10.13.1` (the same version used in CI)
+- Chromium for the Playwright suite (`pnpm exec playwright install chromium`)
 
 ## Setup and commands
 
 ```bash
 nvm use
-npm install
-npm run dev
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 The development server prints its local URL. The other project commands are:
 
 ```bash
-npm test                 # Vitest unit and component suite
-npm run test:watch       # Vitest in watch mode
-npm run test:coverage    # logic coverage report
-npm run build            # production bundle in dist/
-npm run preview          # serve the production bundle locally
-npm run test:e2e         # headless Chromium E2E suite
-npm run test:e2e:headed  # visible Chromium E2E suite
+pnpm test                # Vitest unit and component suite
+pnpm test:watch          # Vitest in watch mode
+pnpm test:coverage       # logic coverage report
+pnpm build               # production bundle in dist/
+pnpm preview             # serve the production bundle locally
+pnpm test:e2e            # headless Chromium E2E suite
+pnpm test:e2e:headed     # visible Chromium E2E suite
 ```
 
 For a first Playwright run, install its browser separately:
 
 ```bash
-npx playwright install chromium
+pnpm exec playwright install chromium
 ```
 
 ## Features
@@ -41,9 +42,11 @@ npx playwright install chromium
 - Vue Flow canvas with custom Trigger, Send Message, Add Comment, Business
   Hours, Success, and Failure cards
 - Position updates via real drag interactions
-- Validated node creation for all three editable types
+- Validated node creation for Send Message, Add Comment, and Business Hours
 - Route-addressable detail drawers at `/node/:nodeId`
-- Editable messages, comments, weekly hours, timezones, and attachment tiles
+- Editable Trigger details and independently editable/removable message texts
+- Editable comments, weekly hours, 24 representative whole-hour timezones, and attachment tiles
+- Custom Reka Popover time picker with separate 24-hour and 60-minute columns
 - Confirmed deletion with connected-edge cleanup
 - Undo and redo for moves, edits, creates, and deletes
 - Keyboard navigation and motion/contrast accessibility considerations
@@ -86,7 +89,7 @@ action changes the graph. This keeps mutation status observable while retaining
 one predictable source of truth for Vue Flow.
 
 The store records immutable graph snapshots before changes. Use `Ctrl/Cmd+Z` to
-undo and `Shift+Ctrl/Cmd+Z` to redo, or use the toolbar buttons. Shortcuts are
+undo and `Shift+Ctrl/Cmd+Z` to redo, or use the header buttons. Shortcuts are
 ignored while a text field, select, or editable region has focus so native text
 undo continues to work.
 
@@ -103,7 +106,7 @@ Records contain `id`, `parentId`, `type`, `data`, and sometimes `name`. The app:
 - derives six edges from valid `parentId` links;
 - maps wire type `dateTime` to editor type `businessHours`;
 - maps `dateTimeConnector` plus `connectorType` to `success` or `failure`;
-- extracts message text and attachment entries from `data.payload`;
+- preserves each message text and attachment entry from `data.payload` independently;
 - preserves seven `HH:mm` business-hour ranges and the `UTC` timezone;
 - supplies descriptions and a deterministic tree layout because the source has
   neither descriptions nor positions.
@@ -116,11 +119,16 @@ failure to the exact inspected copy in `src/api/payload-fallback.json`. HTTP and
 schema errors remain visible instead of being hidden by the fallback. The live
 browser request should be re-verified if the bucket's CORS policy changes.
 
-## shadcn and `cn`
+## Implementation and UI primitives
 
-The project was initialized with the shadcn and shadcn-vue CLIs. Following the
-September 2026 convention, `cn` is installed as a real runtime dependency.
-`src/lib/utils.js` contains only:
+The workflow graph normalization, deterministic layout, insertion/rewiring,
+history, node caching, validation, editors, and time-option generation are
+project-specific implementations. Vue Flow provides the canvas, while
+shadcn-vue/Reka primitives provide accessible low-level dialogs, sheets, and
+select behavior; no third-party workflow-editor implementation is copied.
+
+Following the September 2026 shadcn convention, `cn` is installed as a runtime
+dependency. `src/lib/utils.js` contains only:
 
 ```js
 export { cn } from 'cn'
@@ -138,8 +146,29 @@ Generated Vue components import that re-export. There is no project-local
 - Status changes use polite or assertive live regions as appropriate.
 - Visible focus rings, AA text contrast, explicit form labels, descriptive image
   alternatives, and reduced-motion behavior are included.
-- Trigger and Success/Failure nodes remain readable but are not presented as
-  editable controls.
+- Trigger, Send Message, Add Comment, and Business Hours nodes are keyboard-accessible.
+- Success and Failure remain display-only and expose no drawer or add action.
+
+## Validation
+
+Validation is centralized in `src/utils/validation.js` and repeated in the Pinia
+update boundary for defense in depth. It covers required title/description
+fields, their length limits, supported node types and timezones, valid and
+non-equal business-hour times, individual message-text limits and empty entries,
+optional comment length, attachment count, and a 10 MB per-file upload limit.
+Errors are linked to their controls with `aria-invalid` and `aria-describedby`.
+Overnight schedules remain valid because an end time earlier than the start time
+is a legitimate cross-midnight range.
+
+## Rendering and motion decisions
+
+Vue Flow receives stable custom node objects through a `WeakMap` cache, and node
+templates use `v-memo` so an unrelated edit does not redraw every card. A
+computed set of nodes with outgoing edges makes terminal-state lookup linear for
+the graph instead of scanning every edge for every node. Drawer motion lasts
+200 ms and animates transform/opacity, with a compositor hint while avoiding
+backdrop blur. `prefers-reduced-motion` reduces all animations. Production code
+is split into app, Vue Flow, and Reka chunks for better browser caching.
 
 ## Testing design
 
@@ -155,14 +184,20 @@ state. The suite exercises real Vue Flow dragging, node/edge rendering,
 deep-linking, back/forward history, uploads, all editor variants, creation,
 deletion, undo/redo, and keyboard-only drawer navigation.
 
+The V8 coverage report targets state, API normalization, composables, and shared
+utilities, where line coverage is most meaningful. Vue components have direct
+Vitest interaction tests—including Select and TimePicker contracts—and are also
+exercised through the real Chromium suite rather than relying on snapshots.
+
 ## Trade-offs and scope
 
 - There is no persistence backend because the source endpoint is read-only.
   Reloading resets edits; opening and closing drawers does not.
 - Uploaded file bytes are not sent anywhere and object URLs last only for the
   current page session.
-- Native `input[type="time"]` controls provide the real, accessible browser time
-  picker without adding a large date library. The wire format is already `HH:mm`.
+- Business Hours uses a custom two-column Reka Popover time picker so popup
+  colors match the theme and every minute remains selectable. It emits the API's
+  existing `HH:mm` wire format without a date library.
 - The deterministic layout is intentionally small and tailored to the supplied
   parent tree. A larger production editor would use a dedicated layout engine
   and persist viewport/position records.
@@ -170,7 +205,8 @@ deletion, undo/redo, and keyboard-only drawer navigation.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` uses Node from `.nvmrc`, installs with `npm ci`, runs
-the unit suite and production build, installs headless Chromium, and then runs
-the E2E suite. Build output, coverage, Playwright reports, browser results,
-dependencies, and the assessment `build-prompt.md` are all ignored by Git.
+`.github/workflows/ci.yml` uses Node from `.nvmrc` and pnpm `10.13.1`, performs a
+frozen-lockfile install, runs the unit suite and production build, installs
+headless Chromium, and then runs the E2E suite. Build output, coverage,
+Playwright reports, browser results, dependencies, and the assessment
+`build-prompt.md` are all ignored by Git.

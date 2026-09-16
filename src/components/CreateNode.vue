@@ -54,22 +54,22 @@ defineExpose({ openAfter })
         <div class="create-drawer-body form-stack">
           <div class="field-group">
             <Label for="create-title">Title</Label>
-            <Input id="create-title" v-model="fields.title" name="title" aria-describedby="create-title-error" />
+            <Input id="create-title" v-model="fields.title" name="title" aria-describedby="create-title-error" :aria-invalid="!!errors.title" />
             <p v-if="errors.title" id="create-title-error" class="field-error">{{ errors.title }}</p>
           </div>
           <div class="field-group">
             <div class="field-label-row"><Label for="create-description">Description</Label><span>{{ fields.description.length }} / {{ DESCRIPTION_LIMIT }}</span></div>
-            <Textarea id="create-description" v-model="fields.description" name="description" :maxlength="DESCRIPTION_LIMIT + 1" aria-describedby="create-description-error" />
+            <Textarea id="create-description" v-model="fields.description" name="description" :maxlength="DESCRIPTION_LIMIT + 1" aria-describedby="create-description-error" :aria-invalid="!!errors.description" />
             <p v-if="errors.description" id="create-description-error" class="field-error">{{ errors.description }}</p>
           </div>
           <div class="field-group">
             <Label for="create-type">Type</Label>
-            <select id="create-type" v-model="fields.type" name="type" class="select-input">
+            <select id="create-type" v-model="fields.type" name="type" class="select-input" aria-describedby="create-type-error" :aria-invalid="!!errors.type">
               <option value="sendMessage">Send Message</option>
               <option value="addComment">Add Comments</option>
               <option value="businessHours">Business Hours</option>
             </select>
-            <p v-if="errors.type" class="field-error">{{ errors.type }}</p>
+            <p v-if="errors.type" id="create-type-error" class="field-error">{{ errors.type }}</p>
           </div>
         </div>
         <SheetFooter class="create-drawer-footer">

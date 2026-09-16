@@ -10,6 +10,8 @@ it('shows inline validation, counts description characters and creates only vali
   form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
   await flushPromises()
   expect(document.body.textContent).toContain('Use at least 3 characters')
+  expect(form.querySelector('[name="title"]').getAttribute('aria-invalid')).toBe('true')
+  expect(form.querySelector('[name="description"]').getAttribute('aria-describedby')).toBe('create-description-error')
   expect(store.nodes).toHaveLength(7)
   const set = (selector, value) => { const input = form.querySelector(selector); input.value = value; input.dispatchEvent(new Event('input', { bubbles: true })) }
   set('[name="title"]', 'Follow up')

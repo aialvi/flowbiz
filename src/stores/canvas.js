@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { isCreatableType, isEditableType, validateNode } from '@/utils/validation'
+import { isCreatableType, isEditableType, validateNode, validateNodeData } from '@/utils/validation'
 import { nodeVerticalStep } from '@/utils/nodes'
 
 function copyGraph(nodes, edges) {
@@ -59,7 +59,7 @@ export const useCanvasStore = defineStore('canvas', {
       const id = crypto.randomUUID()
       const type = fields.type
       const data = { title: fields.title.trim(), description: fields.description.trim(), parentId: source?.id ?? '-1' }
-      if (type === 'sendMessage') Object.assign(data, { message: '', messages: [{ id: `${id}-text-0`, text: '' }], attachments: [] })
+      if (type === 'sendMessage') Object.assign(data, { message: '', messages: [], attachments: [] })
       if (type === 'addComment') data.comment = ''
       if (type === 'businessHours') Object.assign(data, { timezone: 'UTC', times: ['mon', 'tue', 'wed', 'thu', 'fri'].map(day => ({ day, startTime: '09:00', endTime: '17:00' })) })
       const maxX = Math.max(0, ...this.nodes.map(node => node.position.x))
@@ -101,7 +101,7 @@ export const useCanvasStore = defineStore('canvas', {
       const node = this.nodeById(id)
       if (!node || !isEditableType(node.type)) throw new Error('This node cannot be edited')
       const data = { ...node.data, ...patch }
-      if (Object.keys(validateNode({ ...data, type: node.type })).length) throw new Error('Invalid node fields')
+      if (Object.keys(validateNodeData({ ...data, type: node.type })).length) throw new Error('Invalid node fields')
       this.record()
       this.nodes = this.nodes.map(item => item.id === id ? { ...item, data } : item)
     },

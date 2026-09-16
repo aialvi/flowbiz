@@ -1,5 +1,6 @@
 import { flushPromises } from '@vue/test-utils'
 import NodeDrawer from '@/components/drawer/NodeDrawer.vue'
+import { MAX_ATTACHMENT_BYTES } from '@/utils/validation'
 import { render } from '../helpers'
 
 function input(selector, value) {
@@ -39,6 +40,23 @@ it('shows existing attachments and uploads any new file in memory', async () => 
   await flushPromises()
   expect(document.body.textContent).toContain('brief.txt')
   expect(store.nodeById('b0653a').data.attachments.at(-1).name).toBe('brief.txt')
+})
+
+it('shows accessible errors for blank text entries and oversized uploads', async () => {
+  await render(NodeDrawer, { route: '/node/b0653a' })
+  input('[name="message-text"]', '')
+  await flushPromises()
+  document.querySelector('[data-testid="save-node"]').click()
+  await flushPromises()
+  expect(document.querySelector('[name="message-text"]').getAttribute('aria-invalid')).toBe('true')
+  expect(document.body.textContent).toContain('Remove empty message fields')
+
+  const upload = document.querySelector('input[type="file"]')
+  Object.defineProperty(upload, 'files', { value: [{ name: 'large.bin', size: MAX_ATTACHMENT_BYTES + 1, type: 'application/octet-stream' }] })
+  upload.dispatchEvent(new Event('change', { bubbles: true }))
+  await flushPromises()
+  expect(upload.getAttribute('aria-invalid')).toBe('true')
+  expect(document.body.textContent).toContain('10 MB or smaller')
 })
 
 it('requires confirmation before deleting the node and navigates home', async () => {

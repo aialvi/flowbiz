@@ -6,6 +6,16 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('@vue-flow')) return 'vue-flow'
+          if (id.includes('reka-ui')) return 'reka-ui'
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
