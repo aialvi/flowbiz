@@ -6,8 +6,8 @@ supports creating, editing, deleting, and undoing local workflow changes.
 
 ## Prerequisites
 
-- Node.js `24.21.0` LTS (pinned in `.nvmrc`)
-- pnpm `10.13.1` (the same version used in CI)
+- Node.js `24.21.0` LTS
+- pnpm `10.13.1`
 - Chromium for the Playwright suite (`pnpm exec playwright install chromium`)
 
 ## Setup and commands
@@ -98,11 +98,7 @@ undo continues to work.
 
 ## Payload shape and fallback
 
-The live URL was fetched and inspected:
-
-`https://respond-io-fe-bucket.s3.ap-southeast-1.amazonaws.com/candidate-assessments/payload.json`
-
-It returns an array of seven records rather than separate `nodes` and `edges`.
+The live URL was fetched and inspected which returned an array of seven records rather than separate `nodes` and `edges`.
 Records contain `id`, `parentId`, `type`, `data`, and sometimes `name`. The app:
 
 - converts IDs to strings;
@@ -208,5 +204,4 @@ exercised through the real Chromium suite rather than relying on snapshots.
 `.github/workflows/ci.yml` uses Node from `.nvmrc` and pnpm `10.13.1`, performs a
 frozen-lockfile install, runs the unit suite and production build, installs
 headless Chromium, and then runs the E2E suite. Build output, coverage,
-Playwright reports, browser results, dependencies, and the assessment
-`build-prompt.md` are all ignored by Git.
+Playwright reports, browser results, and dependencies are all ignored by Git.

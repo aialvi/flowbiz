@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/vue-query'
 import fallbackPayload from './payload-fallback.json'
 import { nodeVerticalStep } from '@/utils/nodes'
 
-export const PAYLOAD_URL = 'https://respond-io-fe-bucket.s3.ap-southeast-1.amazonaws.com/candidate-assessments/payload.json'
+export const PAYLOAD_URL = import.meta.env.DEV
+  ? '/api/payload'
+  : 'https://respond-io-fe-bucket.s3.ap-southeast-1.amazonaws.com/candidate-assessments/payload.json'
 export const queryOptions = {
   queryClientConfig: {
     defaultOptions: {

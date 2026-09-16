@@ -4,6 +4,15 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  server: {
+    proxy: {
+      '/api/payload': {
+        target: 'https://respond-io-fe-bucket.s3.ap-southeast-1.amazonaws.com',
+        changeOrigin: true,
+        rewrite: () => '/candidate-assessments/payload.json',
+      },
+    },
+  },
   plugins: [vue(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   build: {
